@@ -1,5 +1,3 @@
-import asyncio
-
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -19,7 +17,6 @@ from hyd.util.logger import HydLogger
 LOGGER = HydLogger("UserAPI")
 
 v1_router = APIRouter(tags=["user"])
-v1_admin_router = APIRouter(tags=["admin_user"])
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,

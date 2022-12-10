@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from hyd.util.const import TOKEN_SCOPE_MAX_LENGTH
+from hyd.util.const import MAX_LENGTH_TOKEN_SCOPE
 from hyd.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.util.models import TimeStampMixin
 
@@ -25,6 +25,6 @@ class TokenScopeEntry(DeclarativeMeta):
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
     id = Column(Integer, primary_key=True)
     token_id = Column(Integer, ForeignKey("token_table.id"))
-    scope = Column(String(length=TOKEN_SCOPE_MAX_LENGTH))
+    scope = Column(String(length=MAX_LENGTH_TOKEN_SCOPE))
 
     token_entry = relationship("TokenEntry", back_populates="scope_entries")

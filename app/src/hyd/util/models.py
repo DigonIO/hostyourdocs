@@ -4,8 +4,15 @@ from fastapi import status
 from pydantic.types import conint, constr
 from sqlalchemy import Column, DateTime, event
 
+from hyd.util.const import MAX_LENGTH_STR_ID
+
 PrimaryKey = conint(gt=0, lt=2147483647)
-NameStr = constr(regex=r"^(?!\s*$).+", strip_whitespace=True, min_length=3)
+NameStr = constr(
+    regex=r"^(?!\s*$).+",
+    strip_whitespace=True,
+    min_length=3,
+    max_length=MAX_LENGTH_STR_ID,
+)
 
 
 class TimeStampMixin(object):
@@ -30,8 +37,12 @@ DEFAULT_STR = {"content": {"application/json": {"example": "string"}}}
 DEFAULT_MSG = {"content": {"application/json": {"example": {"msg": "string"}}}}
 # see https://fastapi.tiangolo.com/advanced/additional-responses/
 DEFAULT_PDF = {"content": {"application/pdf": {}}}
-DEFAULT_MSG_ID = {"content": {"application/json": {"example": {"msg": "string", "id": 1}}}}
-DEFAULT_MSG_IDS = {"content": {"application/json": {"example": {"msg": "string", "ids": [1]}}}}
+DEFAULT_MSG_ID = {
+    "content": {"application/json": {"example": {"msg": "string", "id": 1}}}
+}
+DEFAULT_MSG_IDS = {
+    "content": {"application/json": {"example": {"msg": "string", "ids": [1]}}}
+}
 
 BASE_API_RESPONSE_SCHEMA = {
     status.HTTP_500_INTERNAL_SERVER_ERROR: {

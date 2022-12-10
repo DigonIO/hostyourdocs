@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
 
-from hyd.util.const import USERNAME_MAX_LENGTH
+from hyd.util.const import MAX_LENGTH_STR_ID
 from hyd.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.util.models import TimeStampMixin
 from hyd.token.models import TokenEntry
@@ -18,7 +18,7 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
     __tablename__ = "user_table"
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
     id = Column(Integer, primary_key=True)
-    username = Column(String(length=USERNAME_MAX_LENGTH), unique=True)
+    username = Column(String(length=MAX_LENGTH_STR_ID), unique=True)
     hashed_password = Column(LargeBinary)
     is_admin = Column(Boolean)
     is_disabled = Column(Boolean, default=False)
@@ -31,7 +31,6 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
         ),
         viewonly=True,
     )
-    prediction_entries = relationship("PredictionEntry", back_populates="user_entry")
 
     _session_token_entry: TokenEntry | None = None
     _session_permitted_scopes: list[str] | None = None

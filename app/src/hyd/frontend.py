@@ -24,7 +24,7 @@ frontend_router = APIRouter(tags=["frontend"])
 @frontend_router.get("/", response_class=HTMLResponse)
 async def frontend_landing(request: Request, db: Session = Depends(get_db)):
 
-    project_entries = await project_service.read_projects(db=db)
+    project_entries = project_service.read_projects(db=db)
 
     return TEMPLATES.TemplateResponse(
         "simple.html",
@@ -41,7 +41,7 @@ async def frontend_landing(
     request: Request, project_name: NameStr, db: Session = Depends(get_db)
 ):
 
-    project_entries = await project_service.read_project_by_name(
+    project_entries = project_service.read_project_by_name(
         project_name=project_name, db=db
     )
     if not project_entries:

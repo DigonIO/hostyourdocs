@@ -1,13 +1,11 @@
+import hyd.util.patch_fastapi  # dirty openapi.json hack
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
-import hyd.util.patch_fastapi  # dirty openapi.json hack
-
 from hyd.api import api_router
-from hyd.frontend import frontend_router
 from hyd.db import DeclarativeMeta, SessionMaker, engine
-from hyd.util.logger import HydLogger
+from hyd.frontend import frontend_router
 from hyd.mount_helper import MountHelper
+from hyd.util.logger import HydLogger
 
 LOGGER = HydLogger("App")
 

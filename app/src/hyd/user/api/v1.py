@@ -1,18 +1,14 @@
+import hyd.token.service as token_service
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-
-import hyd.token.service as token_service
 from hyd.db import get_db
 from hyd.security import SCOPES, Scopes, create_jwt, verify_password
 from hyd.token.models import TokenEntry
 from hyd.user.authentication import authenticate_user
 from hyd.user.models import TokenSchema, UserEntry
-from hyd.user.service import (
-    read_users_by_username,
-    update_user_pw_by_ref,
-)
+from hyd.user.service import read_users_by_username, update_user_pw_by_ref
 from hyd.util.logger import HydLogger
+from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("UserAPI")
 
@@ -34,9 +30,7 @@ async def api_login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     username = form_data.username
-    user_entries: list[UserEntry] = await read_users_by_username(
-        username=username, db=db
-    )
+    user_entries: list[UserEntry] = await read_users_by_username(username=username, db=db)
     if not user_entries:
         raise credentials_exception
 
@@ -110,7 +104,5 @@ async def api_change_password(
 
 
 @v1_router.get("/greet")
-async def api_greet(
-    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER])
-):
+async def api_greet(user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER])):
     return f"Hello {user_entry.username} :)"  # TODO Refactor result

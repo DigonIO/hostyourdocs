@@ -1,9 +1,8 @@
 import sqlalchemy
 import sqlalchemy.orm
 from fastapi import Request
-from sqlalchemy.orm import declarative_base, sessionmaker
-
 from hyd.util.const import PATH_DATA
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 EXTEND_EXISTING = True
 URL_SQLITE = f"sqlite:///{PATH_DATA}/hyd.db"

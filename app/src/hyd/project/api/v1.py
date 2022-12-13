@@ -1,20 +1,19 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
-from hyd.util.logger import HydLogger
-from hyd.util.models import NameStr, PrimaryKey
 from hyd.db import get_db
 from hyd.project.service import (
     create_project,
-    read_projects,
-    read_project,
     delete_project_by_ref,
+    read_project,
+    read_projects,
 )
 from hyd.util.const import PATH_PROJECTS
+from hyd.util.logger import HydLogger
+from hyd.util.models import NameStr, PrimaryKey
 from hyd.version.api.v1 import version_rm_mount_and_files
+from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("ProjectAPI")
 

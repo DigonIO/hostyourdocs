@@ -1,0 +1,21 @@
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311']
+
+[tool.isort]
+py_version = 39
+profile = "black"
+
+[tool.pydocstyle]
+convention = "numpy"
+add-ignore = ["D105"]
+
+[tool.mypy]
+python_version = 3.10
+warn_return_any = true
+warn_unused_configs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"

@@ -1,14 +1,13 @@
+import hyd.token.service as token_service
 from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes
-from sqlalchemy.orm import Session
-
-import hyd.token.service as token_service
 from hyd.db import get_db
-from hyd.util.error import VerificationError
 from hyd.security import JWT, OAUTH2_SCHEME, verify_jwt
 from hyd.token.models import TokenEntry
 from hyd.user.models import UserEntry
+from hyd.util.error import VerificationError
 from hyd.util.logger import HydLogger
+from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("Authentication")
 
@@ -27,9 +26,7 @@ async def _authenticate(
     try:
         jwt: JWT = verify_jwt(token=token)
     except VerificationError as err:
-        LOGGER.error(
-            "Faulty or manipulated token used {token: %s, error: %s}", token, err
-        )
+        LOGGER.error("Faulty or manipulated token used {token: %s, error: %s}", token, err)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials.",

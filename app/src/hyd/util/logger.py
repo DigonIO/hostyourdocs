@@ -76,9 +76,7 @@ class HydLogger(_LoggerAdapter):
         if not handlers:
             self.logger.setLevel(logging.DEBUG)
 
-            log_format = (
-                "[%(asctime)s][%(levelname)s][%(name)s][%(funcName)s] %(message)s"
-            )
+            log_format = "[%(asctime)s][%(levelname)s][%(name)s][%(funcName)s] %(message)s"
             log_formatter = logging.Formatter(
                 log_format,
                 "%Y-%m-%d %H:%M:%S",

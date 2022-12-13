@@ -1,7 +1,6 @@
-from sqlalchemy.orm import Session
-
-from hyd.util.models import NameStr, PrimaryKey
 from hyd.project.models import ProjectEntry, VersionEntry
+from hyd.util.models import NameStr, PrimaryKey
+from sqlalchemy.orm import Session
 
 
 def create_project(name: NameStr, db: Session) -> ProjectEntry:
@@ -56,9 +55,7 @@ def read_version(project_id: PrimaryKey, ver_str: NameStr, db=Session) -> Versio
     return db.query(VersionEntry).get((project_id, ver_str))
 
 
-def delete_version(
-    project_id: PrimaryKey, ver_str: NameStr, db=Session
-) -> VersionEntry:
+def delete_version(project_id: PrimaryKey, ver_str: NameStr, db=Session) -> VersionEntry:
     version_entry = read_version(project_id=project_id, ver_str=ver_str, db=db)
     db.delete(version_entry)
     db.commit()

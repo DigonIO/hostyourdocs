@@ -1,17 +1,12 @@
-from sqlalchemy.orm import Session
-
-from hyd.util.models import PrimaryKey
 from hyd.security import hash_password
 from hyd.user.models import UserEntry
+from hyd.util.models import PrimaryKey
+from sqlalchemy.orm import Session
 
 
-async def create_user(
-    *, username: str, password: str, is_admin: bool, db: Session
-) -> UserEntry:
+async def create_user(*, username: str, password: str, is_admin: bool, db: Session) -> UserEntry:
     hashed_password: bytes = hash_password(password=password)
-    user_entry = UserEntry(
-        username=username, hashed_password=hashed_password, is_admin=is_admin
-    )
+    user_entry = UserEntry(username=username, hashed_password=hashed_password, is_admin=is_admin)
     db.add(user_entry)
     db.commit()
     return user_entry
@@ -39,16 +34,12 @@ async def disable_user_by_ref(*, user_entry: PrimaryKey, db: Session) -> None:
     db.commit()
 
 
-async def update_user_pw(
-    *, user_id: PrimaryKey, new_password: str, db: Session
-) -> UserEntry:
+async def update_user_pw(*, user_id: PrimaryKey, new_password: str, db: Session) -> UserEntry:
     user_entry = await read_user(user_id=user_id, db=db)
     await update_user_pw_by_ref(user_entry=user_entry, new_password=new_password, db=db)
     return user_entry
 
 
-async def update_user_pw_by_ref(
-    *, user_entry: UserEntry, new_password: str, db: Session
-) -> None:
+async def update_user_pw_by_ref(*, user_entry: UserEntry, new_password: str, db: Session) -> None:
     user_entry.hashed_password = hash_password(password=new_password)
     db.commit()

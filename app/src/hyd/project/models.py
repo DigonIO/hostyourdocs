@@ -1,9 +1,8 @@
+from hyd.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.util.const import MAX_LENGTH_STR_ID
+from hyd.util.models import TimeStampMixin
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Mapped, relationship
-
-from hyd.util.const import MAX_LENGTH_STR_ID
-from hyd.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.util.models import TimeStampMixin
 
 
 class ProjectEntry(DeclarativeMeta, TimeStampMixin):

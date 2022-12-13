@@ -1,8 +1,7 @@
 from fastapi import APIRouter
-
+from hyd.project.api.v1 import v1_router as v1_router_project
 from hyd.token.api.v1 import v1_router as v1_router_token
 from hyd.user.api.v1 import v1_router as v1_router_user
-from hyd.project.api.v1 import v1_router as v1_router_project
 from hyd.version.api.v1 import v1_router as v1_router_version
 
 v1_router = APIRouter()

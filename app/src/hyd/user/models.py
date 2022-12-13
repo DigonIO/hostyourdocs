@@ -1,12 +1,11 @@
+from hyd.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.security import Scopes
+from hyd.token.models import TokenEntry
+from hyd.util.const import MAX_LENGTH_STR_ID
+from hyd.util.models import TimeStampMixin
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
-
-from hyd.util.const import MAX_LENGTH_STR_ID
-from hyd.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.util.models import TimeStampMixin
-from hyd.token.models import TokenEntry
-from hyd.security import Scopes
 
 
 class TokenSchema(BaseModel):
@@ -26,9 +25,7 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
     token_entries = relationship("TokenEntry", back_populates="user_entry")
     login_token_entries = relationship(
         "TokenEntry",
-        primaryjoin=(
-            "and_(TokenEntry.user_id==UserEntry.id, TokenEntry.is_login_token==True)"
-        ),
+        primaryjoin=("and_(TokenEntry.user_id==UserEntry.id, TokenEntry.is_login_token==True)"),
         viewonly=True,
     )
 

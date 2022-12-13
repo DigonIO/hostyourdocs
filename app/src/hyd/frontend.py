@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Request, Depends
+import hyd.project.service as project_service
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-
-from hyd.util.const import TEMPLATE_PATH, HTML_TITLE
-from hyd.util.logger import HydLogger
 from hyd.db import get_db
 from hyd.project.models import ProjectEntry
-import hyd.project.service as project_service
+from hyd.util.const import HTML_TITLE, TEMPLATE_PATH
+from hyd.util.logger import HydLogger
 from hyd.util.models import NameStr
+from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("Frontend")
 
@@ -37,13 +36,9 @@ async def frontend_simple(request: Request, db: Session = Depends(get_db)):
 
 
 @frontend_router.get("/{project_name}", response_class=HTMLResponse)
-async def frontend_project(
-    request: Request, project_name: NameStr, db: Session = Depends(get_db)
-):
+async def frontend_project(request: Request, project_name: NameStr, db: Session = Depends(get_db)):
 
-    project_entry = project_service.read_project_by_name(
-        project_name=project_name, db=db
-    )
+    project_entry = project_service.read_project_by_name(project_name=project_name, db=db)
 
     return TEMPLATES.TemplateResponse(
         "project.html",

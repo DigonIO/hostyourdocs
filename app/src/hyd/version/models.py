@@ -1,19 +1,16 @@
+from hyd.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.project.models import ProjectEntry
+from hyd.util.const import MAX_LENGTH_STR_ID
+from hyd.util.models import TimeStampMixin
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, relationship
-
-from hyd.util.const import MAX_LENGTH_STR_ID
-from hyd.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.util.models import TimeStampMixin
-from hyd.project.models import ProjectEntry
 
 
 class VersionEntry(DeclarativeMeta, TimeStampMixin):
     __tablename__ = "version_table"
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
 
-    project_id: Mapped[int] = Column(
-        Integer, ForeignKey("project_table.id"), primary_key=True
-    )
+    project_id: Mapped[int] = Column(Integer, ForeignKey("project_table.id"), primary_key=True)
     ver_str = Column(String(length=MAX_LENGTH_STR_ID), primary_key=True)
 
     filename = Column(String(length=MAX_LENGTH_STR_ID))

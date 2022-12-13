@@ -41,13 +41,9 @@ async def frontend_project(
     request: Request, project_name: NameStr, db: Session = Depends(get_db)
 ):
 
-    project_entries = project_service.read_project_by_name(
+    project_entry = project_service.read_project_by_name(
         project_name=project_name, db=db
     )
-    if not project_entries:
-        ...  # TODO raise
-
-    project_entry = project_entries[0]
 
     return TEMPLATES.TemplateResponse(
         "project.html",

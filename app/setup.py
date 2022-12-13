@@ -14,5 +14,8 @@ setup(
         "feedparser>=6.0.3",
         "uvicorn>=0.18.2",
     ],
+    extras_require={
+        "dev": "pre-commit==2.20.0",
+    },
     package_dir={"": "src"},
 )

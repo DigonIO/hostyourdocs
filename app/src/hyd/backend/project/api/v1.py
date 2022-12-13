@@ -1,5 +1,6 @@
 import shutil
 from pathlib import Path
+from typing import Union
 
 from fastapi import APIRouter, Depends
 from hyd.db import get_db
@@ -31,7 +32,7 @@ async def api_list(db: Session = Depends(get_db)):
 
 
 @v1_router.get("/get")
-async def api_list(project_id: PrimaryKey, db: Session = Depends(get_db)):
+async def api_list(project_id: Union[int, str], db: Session = Depends(get_db)):
     project_entries = read_project(project_id=project_id, db=db)
     return project_entries
 

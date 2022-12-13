@@ -1,22 +1,30 @@
-import asyncio
+from pathlib import Path
 
-from fastapi import FastAPI
+from starlette.routing import BaseRoute, Router
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
-from hyd.project.models import VersionEntry
+from hyd.version.models import VersionEntry
 import hyd.project.service as project_service
 from hyd.util.logger import HydLogger
+from hyd.util.models import NameStr, PrimaryKey
+from hyd.util.const import PATH_PROJECTS
 
 LOGGER = HydLogger("MountHelper")
 
+####################################################################################################
+#### MountHelper
+####################################################################################################
+
 
 class MountHelper:
-    app: FastAPI
+    router: Router
+
+    url_route_mapping: dict[str, BaseRoute] = {}
 
     @classmethod
-    def set_app(cls, app: FastAPI) -> None:
-        cls.app = app
+    def set_router(cls, router: Router) -> None:
+        cls.router = router
 
     @classmethod
     def mount_version(cls, version_entry: VersionEntry) -> None:
@@ -24,11 +32,20 @@ class MountHelper:
         name = version_entry.project_entry.name
         vers = version_entry.ver_str
 
-        relativ_url = f"/project/{name}/v/{vers}"
-        path = f"data/projects/{id}/{vers}"
+        relativ_url = _relative_url(name, vers)
+        path = path_to_version(id, vers)
 
-        cls.app.mount(relativ_url, StaticFiles(directory=path, html=True))
-        LOGGER.info("Add: %s -> %s", relativ_url, path)
+        cls.router.mount(relativ_url, StaticFiles(directory=path, html=True))
+        cls.url_route_mapping[relativ_url] = cls.router.routes[-1]
+
+        LOGGER.info("%s -> %s", relativ_url, path)
+
+    @classmethod
+    def unmount_version(cls, project_name: NameStr, ver_str: NameStr) -> None:
+        relativ_url = _relative_url(project_name, ver_str)
+
+        route = cls.url_route_mapping[relativ_url]
+        cls.router.routes.remove(route)
 
     @classmethod
     def mount_existing_projects(cls, *, db: Session):
@@ -37,3 +54,16 @@ class MountHelper:
         for project_entry in project_entries:
             for version_entry in project_entry.version_entries:
                 cls.mount_version(version_entry=version_entry)
+
+
+####################################################################################################
+#### Util
+####################################################################################################
+
+
+def path_to_version(project_id: PrimaryKey, ver_str: NameStr) -> Path:
+    return PATH_PROJECTS / str(project_id) / ver_str
+
+
+def _relative_url(name: str, ver_str: str) -> str:
+    return f"/project/{name}/v/{ver_str}"

@@ -22,7 +22,7 @@ frontend_router = APIRouter(tags=["frontend"])
 
 
 @frontend_router.get("/", response_class=HTMLResponse)
-async def frontend_landing(request: Request, db: Session = Depends(get_db)):
+async def frontend_simple(request: Request, db: Session = Depends(get_db)):
 
     project_entries = project_service.read_projects(db=db)
 
@@ -37,7 +37,7 @@ async def frontend_landing(request: Request, db: Session = Depends(get_db)):
 
 
 @frontend_router.get("/{project_name}", response_class=HTMLResponse)
-async def frontend_landing(
+async def frontend_project(
     request: Request, project_name: NameStr, db: Session = Depends(get_db)
 ):
 

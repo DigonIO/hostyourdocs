@@ -52,5 +52,5 @@ async def db_session_middleware(request: Request, call_next):
 app.include_router(api_router, prefix="/api")
 app.include_router(frontend_router, prefix="/simple")
 
-MountHelper.set_app(app=app)
+MountHelper.set_router(router=app.router)
 MountHelper.mount_existing_projects(db=SessionMaker())

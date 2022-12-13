@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <title>HostYourDocs - {{ project.name }}</title>
+</head>
+
+<body>
+    <h1>{{ project.name }}</h1>
+    <h2>Tags</h2>
+    <ul>
+    </ul>
+    <h2>Versions</h2>
+    <ul>
+        {% for version in project.versions %}
+        <li><a href="{{version.link}}">{{version.ver_str}}</a></li>
+        {% endfor %}
+    </ul>
+
+    <footer>
+        <h2>Misc</h2>
+        <ul>
+            <li>Hostet by <a>REPLACE_ME</a></li>
+            <li><a>Website</a></li>
+            <li><a>Impress</a></li>
+            <li><a>Privacy</a></li>
+        </ul>
+    </footer>
+</body>
+
+</html>

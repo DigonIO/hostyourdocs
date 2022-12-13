@@ -15,7 +15,7 @@ from hyd.mount_helper import MountHelper
 
 LOGGER = HydLogger("App")
 
-DeclarativeMeta.metadata.drop_all(bind=engine)
+# DeclarativeMeta.metadata.drop_all(bind=engine)
 DeclarativeMeta.metadata.create_all(bind=engine)
 
 
@@ -55,6 +55,5 @@ async def db_session_middleware(request: Request, call_next):
 ### Route setup
 ####################################################################################################
 
-app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 app.include_router(api_router, prefix="/api")
-app.include_router(frontend_router, prefix="")
+app.include_router(frontend_router, prefix="/simple")

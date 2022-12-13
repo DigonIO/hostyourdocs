@@ -8,6 +8,7 @@ from hyd.util.logger import HydLogger
 from hyd.db import get_db
 from hyd.project.models import ProjectEntry
 import hyd.project.service as project_service
+from hyd.util.models import NameStr
 
 LOGGER = HydLogger("Frontend")
 
@@ -21,17 +22,39 @@ frontend_router = APIRouter(tags=["frontend"])
 
 
 @frontend_router.get("/", response_class=HTMLResponse)
-@frontend_router.get("/index.html", response_class=HTMLResponse)
 async def frontend_landing(request: Request, db: Session = Depends(get_db)):
 
     project_entries = await project_service.read_projects(db=db)
 
     return TEMPLATES.TemplateResponse(
-        "landing.html",
+        "simple.html",
         {
             "request": request,
             "html_title": HTML_TITLE,
-            "projects": [project_to_dict(entry) for entry in project_entries],
+            "projects": [entry.name for entry in project_entries],
+        },
+    )
+
+
+@frontend_router.get("/{project_name}", response_class=HTMLResponse)
+async def frontend_landing(
+    request: Request, project_name: NameStr, db: Session = Depends(get_db)
+):
+
+    project_entries = await project_service.read_project_by_name(
+        project_name=project_name, db=db
+    )
+    if not project_entries:
+        ...  # TODO raise
+
+    project_entry = project_entries[0]
+
+    return TEMPLATES.TemplateResponse(
+        "project.html",
+        {
+            "request": request,
+            "html_title": HTML_TITLE,
+            "project": project_to_dict(project_entry),
         },
     )
 

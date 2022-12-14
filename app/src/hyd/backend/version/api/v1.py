@@ -4,12 +4,13 @@ import shutil
 import tarfile
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
-from hyd.db import get_db
-from hyd.mount_helper import MountHelper, path_to_version
-from hyd.util.logger import HydLogger
-from hyd.util.models import NameStr, PrimaryKey
-from hyd.version.models import VersionEntry
-from hyd.version.service import (
+from hyd.backend.db import get_db
+from hyd.backend.mount_helper import MountHelper, path_to_version
+from hyd.backend.tag.models import TagEntry
+from hyd.backend.util.logger import HydLogger
+from hyd.backend.util.models import NameStr, PrimaryKey
+from hyd.backend.version.models import VersionEntry
+from hyd.backend.version.service import (
     create_version,
     delete_version_by_ref,
     read_version,
@@ -87,7 +88,16 @@ def version_rm_mount_and_files(*, version_entry: VersionEntry, db: Session) -> N
     id = version_entry.project_id
     name = version_entry.project_entry.name
     ver_str = version_entry.ver_str
+
     MountHelper.unmount_version(project_name=name, ver_str=ver_str)
+
+    tag_entries: list[TagEntry] = version_entry.tag_entries
+    for entry in tag_entries:
+        if entry.version:
+            MountHelper.unmount_tag(project_name=name, tag=entry.tag)
+            entry.version = None
+    db.commit()
+
     delete_version_by_ref(version_entry=version_entry, db=db)
 
     target = path_to_version(id, ver_str)

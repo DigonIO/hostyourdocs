@@ -1,8 +1,8 @@
-from hyd.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.security import Scopes
-from hyd.token.models import TokenEntry
-from hyd.util.const import MAX_LENGTH_STR_ID
-from hyd.util.models import TimeStampMixin
+from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.backend.security import Scopes
+from hyd.backend.token.models import TokenEntry
+from hyd.backend.util.const import MAX_LENGTH_STR_ID
+from hyd.backend.util.models import TimeStampMixin
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship

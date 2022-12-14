@@ -1,6 +1,6 @@
-from hyd.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.util.const import MAX_LENGTH_TOKEN_SCOPE
-from hyd.util.models import TimeStampMixin
+from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.backend.util.const import MAX_LENGTH_TOKEN_SCOPE
+from hyd.backend.util.models import TimeStampMixin
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 

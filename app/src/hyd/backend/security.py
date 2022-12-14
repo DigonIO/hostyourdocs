@@ -1,6 +1,6 @@
 from fastapi.security import OAuth2PasswordBearer
-from hyd.util.error import VerificationError
-from hyd.util.models import NameStr, PrimaryKey
+from hyd.backend.util.error import VerificationError
+from hyd.backend.util.models import NameStr, PrimaryKey
 from jose import JWTError
 from jose.jwt import decode, encode
 from passlib.context import CryptContext

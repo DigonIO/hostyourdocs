@@ -1,5 +1,5 @@
-from hyd.project.models import ProjectEntry
-from hyd.util.models import NameStr, PrimaryKey
+from hyd.backend.project.models import ProjectEntry
+from hyd.backend.util.models import NameStr, PrimaryKey
 from sqlalchemy.orm import Session
 
 

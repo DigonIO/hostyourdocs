@@ -1,6 +1,6 @@
-from hyd.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.util.const import MAX_LENGTH_STR_ID
-from hyd.util.models import TimeStampMixin
+from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.backend.util.const import MAX_LENGTH_STR_ID
+from hyd.backend.util.models import TimeStampMixin
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Mapped, relationship
 
@@ -13,5 +13,9 @@ class ProjectEntry(DeclarativeMeta, TimeStampMixin):
     name = Column(String(length=MAX_LENGTH_STR_ID), unique=True)
 
     version_entries: Mapped[list["VersionEntry"]] = relationship(
-        "VersionEntry", back_populates="project_entry", cascade="all,delete"
+        "VersionEntry", back_populates="project_entry"
+    )  # no cascade="delete" because delete has to be done manually to remove files from disc
+
+    tag_entries: Mapped[list["TagEntry"]] = relationship(
+        "TagEntry", back_populates="project_entry", cascade="all,delete"
     )

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import status
-from hyd.util.const import MAX_LENGTH_STR_ID
+from hyd.backend.util.const import MAX_LENGTH_STR_ID
 from pydantic.types import conint, constr
 from sqlalchemy import Column, DateTime, event
 

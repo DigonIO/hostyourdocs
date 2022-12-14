@@ -1,6 +1,6 @@
-from hyd.security import hash_password
-from hyd.user.models import UserEntry
-from hyd.util.models import PrimaryKey
+from hyd.backend.security import hash_password
+from hyd.backend.user.models import UserEntry
+from hyd.backend.util.models import PrimaryKey
 from sqlalchemy.orm import Session
 
 

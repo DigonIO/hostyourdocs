@@ -8,11 +8,14 @@
     <h1>{{ project.name }}</h1>
     <h2>Tags</h2>
     <ul>
+        {% for entry in project.tags %}
+        <li><a href="/{{entry.link}}">{{entry.tag}}</a></li>
+        {% endfor %}
     </ul>
     <h2>Versions</h2>
     <ul>
-        {% for version in project.versions %}
-        <li><a href="/{{version.link}}">{{version.ver_str}}</a></li>
+        {% for entry in project.versions %}
+        <li><a href="/{{entry.link}}">{{entry.ver_str}}</a></li>
         {% endfor %}
     </ul>
 

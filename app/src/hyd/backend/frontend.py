@@ -1,12 +1,14 @@
-import hyd.project.service as project_service
+import hyd.backend.project.service as project_service
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from hyd.db import get_db
-from hyd.project.models import ProjectEntry
-from hyd.util.const import HTML_TITLE, TEMPLATE_PATH
-from hyd.util.logger import HydLogger
-from hyd.util.models import NameStr
+from hyd.backend.db import get_db
+from hyd.backend.project.models import ProjectEntry
+from hyd.backend.tag.models import TagEntry
+from hyd.backend.util.const import HTML_TITLE, TEMPLATE_PATH
+from hyd.backend.util.logger import HydLogger
+from hyd.backend.util.models import NameStr
+from hyd.backend.version.models import VersionEntry
 from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("Frontend")
@@ -57,10 +59,18 @@ async def frontend_project(request: Request, project_name: NameStr, db: Session 
 
 def project_to_dict(project_entry: ProjectEntry) -> dict:
     name = project_entry.name
+    tag_entries: list[TagEntry] = project_entry.tag_entries
+    version_entries: list[VersionEntry] = project_entry.version_entries
+
     return {
         "name": name,
+        "tags": [
+            {"link": f"project/{name}/t/{entry.tag}", "tag": entry.tag}
+            for entry in tag_entries
+            if entry.version
+        ],
         "versions": [
             {"link": f"project/{name}/v/{entry.ver_str}", "ver_str": entry.ver_str}
-            for entry in project_entry.version_entries
+            for entry in version_entries
         ],
     }

@@ -1,7 +1,7 @@
 import sqlalchemy
 import sqlalchemy.orm
 from fastapi import Request
-from hyd.util.const import PATH_DATA
+from hyd.backend.util.const import PATH_DATA
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 EXTEND_EXISTING = True

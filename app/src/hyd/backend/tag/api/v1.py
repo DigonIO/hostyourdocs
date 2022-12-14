@@ -1,115 +1,60 @@
-import io
-import os
-import tarfile
-
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
-from fastapi.staticfiles import StaticFiles
-from hyd.db import get_db
-from hyd.mount_helper import MountHelper
-from hyd.project.models import ProjectEntry
-from hyd.project.service import (
-    create_project,
-    create_version,
-    delete_project,
-    read_projects,
-    read_versions,
+import hyd.backend.project.service as project_service
+import hyd.backend.version.service as version_service
+from fastapi import APIRouter, Depends
+from hyd.backend.db import get_db
+from hyd.backend.mount_helper import MountHelper
+from hyd.backend.tag.service import (
+    create_tag_entry,
+    delete_tag_entry_by_ref,
+    read_tag_entry,
 )
-from hyd.util.const import PATH_PROJECTS
-from hyd.util.logger import HydLogger
-from hyd.util.models import NameStr, PrimaryKey
+from hyd.backend.util.logger import HydLogger
+from hyd.backend.util.models import NameStr, PrimaryKey
 from sqlalchemy.orm import Session
 
-LOGGER = HydLogger("ProjectAPI")
+LOGGER = HydLogger("TagAPI")
 
-v1_router = APIRouter(tags=["project"])
+v1_router = APIRouter(tags=["tag"])
 
 ####################################################################################################
-#### Scope: PROJECT
+#### Scope: TAG
 ####################################################################################################
 
 
 @v1_router.get("/list")
-async def api_list(db: Session = Depends(get_db)):
-    project_entries = await read_projects(db=db)
-    return project_entries
+async def api_tag_list(project_id: PrimaryKey, db: Session = Depends(get_db)):
+    project_entry = project_service.read_project(project_id=project_id, db=db)
+    return project_entry.tag_entries
 
 
 @v1_router.post("/create")
-async def api_create(name: NameStr, db: Session = Depends(get_db)):
-    project_entry = await create_project(name=name, db=db)
-    return project_entry
+async def api_tag_create(
+    project_id: PrimaryKey, tag: NameStr, primary: bool = False, db: Session = Depends(get_db)
+):
+    return create_tag_entry(project_id=project_id, tag=tag, primary=primary, db=db)
 
 
 @v1_router.post("/delete")
-async def api_delete(project_id: PrimaryKey, db: Session = Depends(get_db)):
-    project_entry = await delete_project(project_id=project_id, db=db)
-    return project_entry
+async def api_tag_delete(project_id: PrimaryKey, tag: NameStr, db: Session = Depends(get_db)):
+    tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
+    if tag_entry.version is not None:
+        MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)
+    delete_tag_entry_by_ref(tag_entry=tag_entry, db=db)
+    return tag_entry
 
 
-@v1_router.get("/doc/list")
-async def api_doc_list(db: Session = Depends(get_db)):
-    version_entries = await read_versions(db=db)
-    return version_entries
-
-
-@v1_router.post("/doc/upload")
-async def api_doc_upload(
-    file: UploadFile,
-    project_id: PrimaryKey = Form(...),
-    ver_str: NameStr = Form(...),
-    db: Session = Depends(get_db),
+@v1_router.post("/move")
+async def api_tag_set(
+    project_id: PrimaryKey, tag: NameStr, version: NameStr, db: Session = Depends(get_db)
 ):
+    tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
+    _ = version_service.read_version(project_id=project_id, ver_str=version, db=db)  # TODO needed?
 
-    file_content = file.file.read()
-    if not file_content:
-        raise HTTPException()  # TODO msg
+    if tag_entry.version is not None:
+        MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)
 
-    version_entry = await create_version(
-        project_id=project_id,
-        ver_str=ver_str,
-        filename=file.filename,
-        content_type=file.content_type,
-        db=db,
-    )
+    tag_entry.version = version
+    db.commit()
 
-    file_like_object = io.BytesIO(file_content)
-    tar = tarfile.open(fileobj=file_like_object, mode="r:gz")
-
-    target = PATH_PROJECTS / str(project_id) / ver_str
-    os.makedirs(target, exist_ok=True)
-
-    tar.extractall(target)
-
-    MountHelper.mount_version(version_entry=version_entry)
-
-    return version_entry
-
-
-@v1_router.post("/doc/delete")
-async def api_doc_delete(request: Request):
-    ...
-
-
-@v1_router.get("/tag/list")
-async def api_tag_list(request: Request):
-    ...
-
-
-@v1_router.post("/tag/create")
-async def api_tag_create(request: Request):
-    ...
-
-
-@v1_router.post("/tag/delete")
-async def api_tag_delete(request: Request):
-    ...
-
-
-@v1_router.post("/tag/set")
-async def api_tag_set(request: Request):
-    ...
-
-
-@v1_router.post("/tag/unset")
-async def api_tag_unset(request: Request):
-    ...
+    MountHelper.mount_tag(tag_entry=tag_entry)
+    return tag_entry

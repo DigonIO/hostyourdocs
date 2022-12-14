@@ -70,7 +70,7 @@ def project_to_dict(project_entry: ProjectEntry) -> dict:
             if entry.version
         ],
         "versions": [
-            {"link": f"project/{name}/v/{entry.ver_str}", "ver_str": entry.ver_str}
+            {"link": f"project/{name}/v/{entry.version}", "version": entry.version}
             for entry in version_entries
         ],
     }

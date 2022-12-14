@@ -48,7 +48,7 @@ async def api_tag_set(
     project_id: PrimaryKey, tag: NameStr, version: NameStr, db: Session = Depends(get_db)
 ):
     tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
-    _ = version_service.read_version(project_id=project_id, ver_str=version, db=db)  # TODO needed?
+    _ = version_service.read_version(project_id=project_id, version=version, db=db)  # TODO needed?
 
     if tag_entry.version is not None:
         MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)

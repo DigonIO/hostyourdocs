@@ -30,7 +30,7 @@ class MountHelper:
     def mount_version(cls, version_entry: VersionEntry) -> None:
         id = version_entry.project_id
         name = version_entry.project_entry.name
-        vers = version_entry.ver_str
+        vers = version_entry.version
 
         relative_url = _relative_version_url(name, vers)
         path = path_to_version(id, vers)
@@ -41,8 +41,8 @@ class MountHelper:
         LOGGER.info("%s -> %s", relative_url, path)
 
     @classmethod
-    def unmount_version(cls, project_name: NameStr, ver_str: NameStr) -> None:
-        relative_url = _relative_version_url(project_name, ver_str)
+    def unmount_version(cls, project_name: NameStr, version: NameStr) -> None:
+        relative_url = _relative_version_url(project_name, version)
 
         route = cls.url_route_mapping[relative_url]
         cls.router.routes.remove(route)
@@ -90,12 +90,12 @@ class MountHelper:
 ####################################################################################################
 
 
-def path_to_version(project_id: PrimaryKey, ver_str: NameStr) -> Path:
-    return PATH_PROJECTS / str(project_id) / ver_str
+def path_to_version(project_id: PrimaryKey, version: NameStr) -> Path:
+    return PATH_PROJECTS / str(project_id) / version
 
 
-def _relative_version_url(name: str, ver_str: str) -> str:
-    return f"/project/{name}/v/{ver_str}"
+def _relative_version_url(name: str, version: str) -> str:
+    return f"/project/{name}/v/{version}"
 
 
 def _relative_tag_url(name: str, tag: str) -> str:

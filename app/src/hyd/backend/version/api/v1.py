@@ -37,17 +37,17 @@ async def api_version_list(project_id: PrimaryKey, db: Session = Depends(get_db)
 async def api_version_upload(
     file: UploadFile,
     project_id: PrimaryKey = Form(...),
-    ver_str: NameStr = Form(...),
+    version: NameStr = Form(...),
     db: Session = Depends(get_db),
 ):
-    return _version_upload(file=file, project_id=project_id, ver_str=ver_str, db=db)
+    return _version_upload(file=file, project_id=project_id, version=version, db=db)
 
 
 @v1_router.post("/version/delete")
 async def api_version_delete(
-    project_id: PrimaryKey, ver_str: NameStr, db: Session = Depends(get_db)
+    project_id: PrimaryKey, version: NameStr, db: Session = Depends(get_db)
 ):
-    version_entry = read_version(project_id=project_id, ver_str=ver_str, db=db)
+    version_entry = read_version(project_id=project_id, version=version, db=db)
     version_rm_mount_and_files(version_entry=version_entry, db=db)
     return version_entry
 
@@ -58,7 +58,7 @@ async def api_version_delete(
 
 
 def _version_upload(
-    *, file: UploadFile, project_id: PrimaryKey, ver_str: NameStr, db: Session
+    *, file: UploadFile, project_id: PrimaryKey, version: NameStr, db: Session
 ) -> VersionEntry:
 
     file_content = file.file.read()
@@ -67,7 +67,7 @@ def _version_upload(
 
     version_entry = create_version(
         project_id=project_id,
-        ver_str=ver_str,
+        version=version,
         filename=file.filename,
         content_type=file.content_type,
         db=db,
@@ -75,7 +75,7 @@ def _version_upload(
 
     file_like_object = io.BytesIO(file_content)
     tar = tarfile.open(fileobj=file_like_object, mode="r:gz")
-    target = path_to_version(version_entry.project_id, version_entry.ver_str)
+    target = path_to_version(version_entry.project_id, version_entry.version)
     os.makedirs(target, exist_ok=True)
     tar.extractall(target)  # Create doc files on disc
 
@@ -87,9 +87,9 @@ def _version_upload(
 def version_rm_mount_and_files(*, version_entry: VersionEntry, db: Session) -> None:
     id = version_entry.project_id
     name = version_entry.project_entry.name
-    ver_str = version_entry.ver_str
+    version = version_entry.version
 
-    MountHelper.unmount_version(project_name=name, ver_str=ver_str)
+    MountHelper.unmount_version(project_name=name, version=version)
 
     tag_entries: list[TagEntry] = version_entry.tag_entries
     for entry in tag_entries:
@@ -100,5 +100,5 @@ def version_rm_mount_and_files(*, version_entry: VersionEntry, db: Session) -> N
 
     delete_version_by_ref(version_entry=version_entry, db=db)
 
-    target = path_to_version(id, ver_str)
+    target = path_to_version(id, version)
     shutil.rmtree(target)  # Delete doc files from disc

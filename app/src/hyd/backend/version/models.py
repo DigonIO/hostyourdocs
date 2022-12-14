@@ -11,7 +11,7 @@ class VersionEntry(DeclarativeMeta, TimeStampMixin):
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
 
     project_id: Mapped[int] = Column(Integer, ForeignKey("project_table.id"), primary_key=True)
-    ver_str = Column(String(length=MAX_LENGTH_STR_ID), primary_key=True)
+    version = Column(String(length=MAX_LENGTH_STR_ID), primary_key=True)
 
     filename = Column(String(length=MAX_LENGTH_STR_ID))
     content_type = Column(String(length=MAX_LENGTH_STR_ID))

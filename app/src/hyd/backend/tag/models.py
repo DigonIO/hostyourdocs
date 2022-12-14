@@ -15,7 +15,7 @@ class TagEntry(DeclarativeMeta, TimeStampMixin):
     primary: Mapped[bool] = Column(Boolean)  # primary == False will be marked as copy for google
     version = Column(
         String(length=MAX_LENGTH_STR_ID),
-        ForeignKey("version_table.ver_str"),
+        ForeignKey("version_table.version"),
         nullable=True,
         default=None,
     )

@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 
 def create_version(
     project_id: PrimaryKey,
-    ver_str: NameStr,
+    version: NameStr,
     filename: NameStr,
     content_type: NameStr,
     db=Session,
 ) -> VersionEntry:
     version_entry = VersionEntry(
         project_id=project_id,
-        ver_str=ver_str,
+        version=version,
         filename=filename,
         content_type=content_type,
     )
@@ -21,8 +21,8 @@ def create_version(
     return version_entry
 
 
-def read_version(project_id: PrimaryKey, ver_str: NameStr, db=Session) -> VersionEntry:
-    return db.query(VersionEntry).get((project_id, ver_str))  # TODO exception
+def read_version(project_id: PrimaryKey, version: NameStr, db=Session) -> VersionEntry:
+    return db.query(VersionEntry).get((project_id, version))  # TODO exception
 
 
 def read_versions(project_id: PrimaryKey, db: Session) -> list[VersionEntry]:

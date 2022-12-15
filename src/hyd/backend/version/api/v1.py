@@ -4,6 +4,8 @@ import shutil
 import tarfile
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from sqlalchemy.orm import Session
+
 from hyd.backend.db import get_db
 from hyd.backend.mount_helper import MountHelper, path_to_version
 from hyd.backend.tag.models import TagEntry
@@ -16,7 +18,6 @@ from hyd.backend.version.service import (
     read_version,
     read_versions,
 )
-from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("VersionAPI")
 

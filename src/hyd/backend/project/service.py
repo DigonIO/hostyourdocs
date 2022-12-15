@@ -1,6 +1,7 @@
+from sqlalchemy.orm import Session
+
 from hyd.backend.project.models import ProjectEntry
 from hyd.backend.util.models import NameStr, PrimaryKey
-from sqlalchemy.orm import Session
 
 
 def create_project(*, name: NameStr, db: Session) -> ProjectEntry:

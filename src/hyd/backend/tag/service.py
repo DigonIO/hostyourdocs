@@ -1,6 +1,7 @@
+from sqlalchemy.orm import Session
+
 from hyd.backend.tag.models import TagEntry
 from hyd.backend.util.models import NameStr, PrimaryKey
-from sqlalchemy.orm import Session
 
 
 def create_tag_entry(project_id: PrimaryKey, tag: NameStr, primary: bool, db: Session) -> TagEntry:

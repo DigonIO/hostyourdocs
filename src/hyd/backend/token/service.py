@@ -1,7 +1,8 @@
+from sqlalchemy.orm import Session
+
 from hyd.backend.token.models import TokenEntry, TokenScopeEntry
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
-from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("TokenService")
 

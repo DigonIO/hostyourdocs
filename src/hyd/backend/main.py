@@ -1,6 +1,7 @@
-import hyd.backend.util.patch_fastapi  # dirty openapi.json hack
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+
+import hyd.backend.util.patch_fastapi  # dirty openapi.json hack
 from hyd.backend.api import api_router
 from hyd.backend.db import DeclarativeMeta, SessionMaker, engine
 from hyd.backend.frontend import frontend_router

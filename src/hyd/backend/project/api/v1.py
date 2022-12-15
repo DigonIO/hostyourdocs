@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Union
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
 from hyd.backend.db import get_db
 from hyd.backend.project.service import (
     create_project,
@@ -14,7 +16,6 @@ from hyd.backend.util.const import PATH_PROJECTS
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.api.v1 import version_rm_mount_and_files
-from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("ProjectAPI")
 

@@ -1,6 +1,8 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
 import hyd.backend.project.service as project_service
 import hyd.backend.version.service as version_service
-from fastapi import APIRouter, Depends
 from hyd.backend.db import get_db
 from hyd.backend.mount_helper import MountHelper
 from hyd.backend.tag.service import (
@@ -10,7 +12,6 @@ from hyd.backend.tag.service import (
 )
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
-from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("TagAPI")
 

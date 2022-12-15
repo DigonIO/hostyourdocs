@@ -1,7 +1,8 @@
+from sqlalchemy.orm import Session
+
 from hyd.backend.security import hash_password
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.models import PrimaryKey
-from sqlalchemy.orm import Session
 
 
 async def create_user(*, username: str, password: str, is_admin: bool, db: Session) -> UserEntry:

@@ -1,7 +1,9 @@
-import hyd.backend.project.service as project_service
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+
+import hyd.backend.project.service as project_service
 from hyd.backend.db import get_db
 from hyd.backend.project.models import ProjectEntry
 from hyd.backend.tag.models import TagEntry
@@ -9,7 +11,6 @@ from hyd.backend.util.const import HTML_TITLE, TEMPLATE_PATH
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr
 from hyd.backend.version.models import VersionEntry
-from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("Frontend")
 

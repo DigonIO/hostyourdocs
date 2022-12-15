@@ -1,10 +1,11 @@
 from fastapi.security import OAuth2PasswordBearer
-from hyd.backend.util.error import VerificationError
-from hyd.backend.util.models import NameStr, PrimaryKey
 from jose import JWTError
 from jose.jwt import decode, encode
 from passlib.context import CryptContext
 from pydantic import BaseModel, ValidationError
+
+from hyd.backend.util.error import VerificationError
+from hyd.backend.util.models import NameStr, PrimaryKey
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 # TODO must not no be in source

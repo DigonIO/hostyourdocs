@@ -1,13 +1,14 @@
-import hyd.backend.token.service as token_service
 from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes
+from sqlalchemy.orm import Session
+
+import hyd.backend.token.service as token_service
 from hyd.backend.db import get_db
 from hyd.backend.security import JWT, OAUTH2_SCHEME, verify_jwt
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.error import VerificationError
 from hyd.backend.util.logger import HydLogger
-from sqlalchemy.orm import Session
 
 LOGGER = HydLogger("Authentication")
 

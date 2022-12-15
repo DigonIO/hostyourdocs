@@ -1,11 +1,12 @@
+from pydantic import BaseModel
+from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
+from sqlalchemy.orm import relationship
+
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.security import Scopes
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
 from hyd.backend.util.models import TimeStampMixin
-from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
-from sqlalchemy.orm import relationship
 
 
 class TokenSchema(BaseModel):

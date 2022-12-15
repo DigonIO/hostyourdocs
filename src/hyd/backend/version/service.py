@@ -1,6 +1,7 @@
+from sqlalchemy.orm import Session
+
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.models import VersionEntry
-from sqlalchemy.orm import Session
 
 
 def create_version(

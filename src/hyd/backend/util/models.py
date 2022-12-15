@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from fastapi import status
-from hyd.backend.util.const import MAX_LENGTH_STR_ID
 from pydantic.types import conint, constr
 from sqlalchemy import Column, DateTime, event
+
+from hyd.backend.util.const import MAX_LENGTH_STR_ID
 
 PrimaryKey = conint(gt=0, lt=2147483647)
 NameStr = constr(

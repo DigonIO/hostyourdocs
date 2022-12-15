@@ -1,9 +1,10 @@
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, relationship
+
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.project.models import ProjectEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
 from hyd.backend.util.models import TimeStampMixin
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, relationship
 
 
 class VersionEntry(DeclarativeMeta, TimeStampMixin):

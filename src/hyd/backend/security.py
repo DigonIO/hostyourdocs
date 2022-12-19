@@ -22,7 +22,7 @@ class Scopes:
 
 
 SCOPES = {
-    Scopes.USER: "Basic user meta operations.",
+    Scopes.USER: "Basic user operations.",
     Scopes.TOKEN: "Create and manage tokens.",
 }
 

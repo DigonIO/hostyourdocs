@@ -7,7 +7,7 @@ from hyd.backend.util.models import PrimaryKey
 LOGGER = HydLogger("TokenService")
 
 
-async def create_token(
+def create_token(
     *, user_id: PrimaryKey, scopes: list[str], is_login_token: bool, db: Session
 ) -> TokenEntry:
     token_entry = TokenEntry(user_id=user_id, is_login_token=is_login_token)
@@ -24,15 +24,15 @@ async def create_token(
     return token_entry
 
 
-async def read_token(*, token_id: int, db: Session) -> TokenEntry:
+def read_token(*, token_id: int, db: Session) -> TokenEntry:
     # TODO unknown entry ID error
     return db.query(TokenEntry).get(token_id)
 
 
-async def read_tokens(*, db: Session) -> list[TokenEntry]:
+def read_tokens(*, db: Session) -> list[TokenEntry]:
     return db.query(TokenEntry).all()
 
 
-async def expire_token_by_ref(*, token_entry: TokenEntry, db: Session) -> None:
+def expire_token_by_ref(*, token_entry: TokenEntry, db: Session) -> None:
     token_entry.is_expired = True
     db.commit()

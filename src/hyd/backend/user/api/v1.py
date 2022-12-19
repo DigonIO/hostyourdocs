@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 import hyd.backend.token.service as token_service
 from hyd.backend.db import get_db
 from hyd.backend.security import SCOPES, Scopes, create_jwt, verify_password
-from hyd.backend.token.models import TokenEntry
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import TokenSchema, UserEntry
 from hyd.backend.user.service import read_users_by_username, update_user_pw_by_ref
+from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 
 LOGGER = HydLogger("UserAPI")
@@ -31,11 +31,10 @@ async def api_login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     username = form_data.username
-    user_entries: list[UserEntry] = await read_users_by_username(username=username, db=db)
-    if not user_entries:
+    try:
+        user_entry: UserEntry = read_users_by_username(username=username, db=db)
+    except UnknownEntryError:
         raise credentials_exception
-
-    user_entry = user_entries[0]
 
     if not verify_password(
         plain_password=form_data.password, hashed_password=user_entry.hashed_password
@@ -50,19 +49,20 @@ async def api_login(
         )
 
     user_id = user_entry.id
-    token_entry = await token_service.create_token(
-        user_id=user_id, scopes=SCOPES, is_login_token=True, db=db
+    scopes = [scope for scope in SCOPES.keys()]
+    token_entry = token_service.create_token(
+        user_id=user_id, scopes=scopes, is_login_token=True, db=db
     )
 
     access_token: str = create_jwt(
-        token_id=token_entry.id, user_id=user_id, username=username, scopes=SCOPES
+        token_id=token_entry.id, user_id=user_id, username=username, scopes=scopes
     )
     LOGGER.info(
         "Login successfully {token_id: %d, user_id: %d, username: %s, scopes: %s}",
         token_entry.id,
         user_entry.id,
         user_entry.username,
-        SCOPES,
+        scopes,
     )
     return {
         "access_token": access_token,
@@ -81,7 +81,7 @@ async def api_logout(
     db: Session = Depends(get_db),
 ):
     token_entry = user_entry.get_session_token_entry()
-    await token_service.expire_token_by_ref(token_entry=token_entry, db=db)
+    token_service.expire_token_by_ref(token_entry=token_entry, db=db)
     return f"Logout {user_entry.username} :("  # TODO Refactor result
 
 
@@ -101,7 +101,7 @@ async def api_change_password(
     if new_password != new_password_repetition:
         ...  # TODO Raise exception
 
-    await update_user_pw_by_ref(user_entry=user_entry, new_password=new_password, db=db)
+    update_user_pw_by_ref(user_entry=user_entry, new_password=new_password, db=db)
 
 
 @v1_router.get("/greet")

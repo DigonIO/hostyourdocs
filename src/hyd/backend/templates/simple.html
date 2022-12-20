@@ -1,11 +1,11 @@
 <html>
 
 <head>
-    <title>HostYourDocs</title>
+    <title>{{html_title}}</title>
 </head>
 
 <body>
-    <h1>HostYourDocs</h1>
+    <h1>{{html_title}}</h1>
     <h2>Projects</h2>
     <ul> {% for project in projects %}
         <li><a href="{{ project }}">{{ project }}</a></li>
@@ -15,13 +15,15 @@
     <footer>
         <h2>Misc</h2>
         <ul>
-            <li>Hostet by <a>REPLACE_ME</a>
-                <ul>
-                    <li><a>Website</a></li>
-                    <li><a>Impress</a></li>
-                    <li><a>Privacy</a></li>
-                </ul>
-            </li>
+            {% if name_hosted_by %}
+            <li>Hostet by <a {% if link_hosted_by %} href="{{link_hosted_by}}" {% endif %}>{{name_hosted_by}}</a></li>
+            {% endif %}
+            {% if link_impress %}
+            <li><a href="{{link_impress}}">Impress</a></li>
+            {% endif %}
+            {% if link_privacy %}
+            <li><a href="{{link_privacy}}">Privacy</a></li>
+            {% endif %}
         </ul>
     </footer>
 </body>

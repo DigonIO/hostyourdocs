@@ -7,7 +7,14 @@ import hyd.backend.project.service as project_service
 from hyd.backend.db import get_db
 from hyd.backend.project.models import ProjectEntry
 from hyd.backend.tag.models import TagEntry
-from hyd.backend.util.const import HTML_TITLE, TEMPLATE_PATH
+from hyd.backend.util.const import (
+    HTML_TITLE,
+    LINK_HOSTED_BY,
+    LINK_IMPRESS,
+    LINK_PRIVACY,
+    NAME_HOSTED_BY,
+    TEMPLATE_PATH,
+)
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr
 from hyd.backend.version.models import VersionEntry
@@ -33,6 +40,10 @@ async def frontend_simple(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "html_title": HTML_TITLE,
+            "link_privacy": LINK_PRIVACY,
+            "link_impress": LINK_IMPRESS,
+            "link_hosted_by": LINK_HOSTED_BY,
+            "name_hosted_by": NAME_HOSTED_BY,
             "projects": [entry.name for entry in project_entries],
         },
     )
@@ -48,6 +59,10 @@ async def frontend_project(request: Request, project_name: NameStr, db: Session 
         {
             "request": request,
             "html_title": HTML_TITLE,
+            "link_privacy": LINK_PRIVACY,
+            "link_impress": LINK_IMPRESS,
+            "link_hosted_by": LINK_HOSTED_BY,
+            "name_hosted_by": NAME_HOSTED_BY,
             "project": project_to_dict(project_entry),
         },
     )

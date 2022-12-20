@@ -1,3 +1,5 @@
+import datetime as dt
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes
 from sqlalchemy.orm import Session
@@ -7,6 +9,7 @@ from hyd.backend.db import get_db
 from hyd.backend.security import JWT, OAUTH2_SCHEME, verify_jwt
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.user.models import UserEntry
+from hyd.backend.util.const import SRV_TIMEZONE
 from hyd.backend.util.error import VerificationError
 from hyd.backend.util.logger import HydLogger
 
@@ -14,9 +17,21 @@ LOGGER = HydLogger("Authentication")
 
 HEADERS = {"WWW-Authenticate": "Bearer"}
 
+HTTPException_VALIDATION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Token unknown, expired, revoked or corrupted!",
+    headers=HEADERS,
+)
+
+HTTPException_USER_DISABLED = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="User is disabled!",
+    headers=HEADERS,
+)
+
 HTTPException_NO_PERMISSION = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Not enough permissions.",
+    detail="Not enough permissions!",
     headers=HEADERS,
 )
 
@@ -28,11 +43,7 @@ def _authenticate(
         jwt: JWT = verify_jwt(token=token)
     except VerificationError as err:
         LOGGER.error("Faulty or manipulated token used {token: %s, error: %s}", token, err)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials.",
-            headers=HEADERS,
-        )
+        raise HTTPException_VALIDATION
 
     token_entry: TokenEntry = token_service.read_token(token_id=jwt.id, db=db)
     permitted_scopes: list[str] = [entry.scope for entry in token_entry.scope_entries]
@@ -40,19 +51,11 @@ def _authenticate(
 
     # check if an user is disabled, because one login tokens expire while disabling an user
     if user_entry.is_disabled:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User is disabled.",
-            headers=HEADERS,
-        )
+        raise HTTPException_USER_DISABLED
 
     # check if a token is expired, login and api tokens
-    if token_entry.is_expired:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Bearer token expired.",
-            headers=HEADERS,
-        )
+    if token_entry.was_revoked or token_entry.check_expiration(db=db):
+        raise HTTPException_VALIDATION
 
     # check scopes for permission handling
     for scope in security_scopes.scopes:
@@ -61,6 +64,7 @@ def _authenticate(
 
     user_entry._current_session_token_entry = token_entry
     user_entry._current_permitted_scopes = permitted_scopes
+    token_entry.last_request = dt.datetime.now(tz=SRV_TIMEZONE)
 
     LOGGER.info(
         "Authentication successfully {token_id: %d, user_id: %d, username: %s, scopes: %s}",

@@ -1,6 +1,10 @@
+import datetime as dt
+
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from hyd.backend.token.models import TokenEntry, TokenScopeEntry
+from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 
@@ -8,9 +12,14 @@ LOGGER = HydLogger("TokenService")
 
 
 def create_token(
-    *, user_id: PrimaryKey, scopes: list[str], is_login_token: bool, db: Session
+    *,
+    user_id: PrimaryKey,
+    expires: dt.datetime | None,
+    scopes: list[str],
+    is_login_token: bool,
+    db: Session,
 ) -> TokenEntry:
-    token_entry = TokenEntry(user_id=user_id, is_login_token=is_login_token)
+    token_entry = TokenEntry(user_id=user_id, expires=expires, is_login_token=is_login_token)
     db.add(token_entry)
     db.commit()
 
@@ -25,14 +34,17 @@ def create_token(
 
 
 def read_token(*, token_id: int, db: Session) -> TokenEntry:
-    # TODO unknown entry ID error
-    return db.query(TokenEntry).get(token_id)
+    try:
+        token_entry = db.query(TokenEntry).get(token_id)
+    except IntegrityError:
+        raise UnknownEntryError
+    return token_entry
 
 
 def read_tokens(*, db: Session) -> list[TokenEntry]:
     return db.query(TokenEntry).all()
 
 
-def expire_token_by_ref(*, token_entry: TokenEntry, db: Session) -> None:
-    token_entry.is_expired = True
+def revoke_token_by_ref(*, token_entry: TokenEntry, db: Session) -> None:
+    token_entry.was_revoked = True
     db.commit()

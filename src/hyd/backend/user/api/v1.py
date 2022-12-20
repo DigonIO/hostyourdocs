@@ -1,3 +1,5 @@
+import datetime as dt
+
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -5,9 +7,14 @@ from sqlalchemy.orm import Session
 import hyd.backend.token.service as token_service
 from hyd.backend.db import get_db
 from hyd.backend.security import SCOPES, Scopes, create_jwt, verify_password
-from hyd.backend.user.authentication import authenticate_user
-from hyd.backend.user.models import TokenSchema, UserEntry
+from hyd.backend.token.models import TokenSchema
+from hyd.backend.user.authentication import (
+    HTTPException_USER_DISABLED,
+    authenticate_user,
+)
+from hyd.backend.user.models import UserEntry
 from hyd.backend.user.service import read_users_by_username, update_user_pw_by_ref
+from hyd.backend.util.const import REMEMBER_ME_DURATION, SRV_TIMEZONE
 from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 
@@ -28,7 +35,9 @@ credentials_exception = HTTPException(
 
 @v1_router.post("/login", response_model=TokenSchema)
 async def api_login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    remember_me: bool,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ):
     username = form_data.username
     try:
@@ -42,32 +51,33 @@ async def api_login(
         raise credentials_exception
 
     if user_entry.is_disabled:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User is disabled.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException_USER_DISABLED
+
+    if remember_me:
+        expires = dt.datetime.now(tz=SRV_TIMEZONE) + REMEMBER_ME_DURATION
+    else:
+        expires = dt.datetime.now(tz=SRV_TIMEZONE)
 
     user_id = user_entry.id
-    scopes = [scope for scope in SCOPES.keys()]
     token_entry = token_service.create_token(
-        user_id=user_id, scopes=scopes, is_login_token=True, db=db
+        user_id=user_id,
+        expires=expires,
+        scopes=SCOPES,
+        is_login_token=True,
+        db=db,
     )
 
     access_token: str = create_jwt(
-        token_id=token_entry.id, user_id=user_id, username=username, scopes=scopes
+        token_id=token_entry.id, user_id=user_id, username=username, scopes=SCOPES
     )
     LOGGER.info(
         "Login successfully {token_id: %d, user_id: %d, username: %s, scopes: %s}",
         token_entry.id,
         user_entry.id,
         user_entry.username,
-        scopes,
+        SCOPES,
     )
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-    }  # TODO Refactor result
+    return TokenSchema(access_token=access_token, token_type="bearer")
 
 
 ####################################################################################################
@@ -81,7 +91,7 @@ async def api_logout(
     db: Session = Depends(get_db),
 ):
     token_entry = user_entry.get_session_token_entry()
-    token_service.expire_token_by_ref(token_entry=token_entry, db=db)
+    token_service.revoke_token_by_ref(token_entry=token_entry, db=db)
     return f"Logout {user_entry.username} :("  # TODO Refactor result
 
 

@@ -1,9 +1,31 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+import datetime as dt
+
+from pydantic import BaseModel
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, Session, relationship
 
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.backend.util.const import MAX_LENGTH_TOKEN_SCOPE
-from hyd.backend.util.models import TimeStampMixin
+from hyd.backend.util.const import (
+    LOGIN_DURATION_AFTER_LAST_REQUEST,
+    MAX_LENGTH_TOKEN_SCOPE,
+    SRV_TIMEZONE,
+)
+from hyd.backend.util.models import PrimaryKey, TimeStampMixin
+
+
+class TokenMetaSchema(BaseModel):
+    token_id: PrimaryKey
+    user_id: PrimaryKey
+    expires: dt.datetime | None
+    is_login_token: bool
+    is_expired: bool
+    was_revoked: bool
+    scopes: list[str]
+
+
+class TokenSchema(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class TokenEntry(DeclarativeMeta, TimeStampMixin):
@@ -11,13 +33,43 @@ class TokenEntry(DeclarativeMeta, TimeStampMixin):
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("user_table.id"))
-    is_login_token = Column(Boolean)
+    expires_on = Column(DateTime(timezone=True), nullable=True)
     is_expired = Column(Boolean, default=False)
+    last_request = Column(DateTime(timezone=True), default=dt.datetime.now(tz=SRV_TIMEZONE))
+    is_login_token = Column(Boolean)
+    was_revoked = Column(Boolean, default=False)
 
-    scope_entries = relationship(
+    scope_entries: Mapped[list["TokenScopeEntry"]] = relationship(
         "TokenScopeEntry", back_populates="token_entry", cascade="all,delete"
     )
-    user_entry = relationship("UserEntry", back_populates="token_entries")
+    user_entry: Mapped["UserEntry"] = relationship("UserEntry", back_populates="token_entries")
+
+    def check_expiration(self, *, db: Session) -> bool:
+        if self.is_expired:
+            return True
+
+        if self.is_login_token:
+            # graciously expire token after expiration datetime is reached
+            # and the last request is older than a given threshold
+            if dt.datetime.now(tz=SRV_TIMEZONE) < self.expires_on:
+                return False
+            if LOGIN_DURATION_AFTER_LAST_REQUEST < (
+                dt.datetime.now(tz=SRV_TIMEZONE) - self.last_request
+            ):
+                self.is_expired = True
+                db.commit()
+                return True
+        else:
+            # expire token after the given datetime is reached
+            if self.expires_on is None:
+                return False
+
+            if self.expires_on <= dt.datetime.now(tz=SRV_TIMEZONE):
+                self.is_expired = True
+                db.commit()
+                return True
+
+        return False
 
 
 class TokenScopeEntry(DeclarativeMeta):

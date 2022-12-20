@@ -28,13 +28,13 @@ v1_router = APIRouter(tags=["version"])
 ####################################################################################################
 
 
-@v1_router.get("/version/list")
+@v1_router.get("/list")
 async def api_version_list(project_id: PrimaryKey, db: Session = Depends(get_db)):
     version_entries = read_versions(project_id=project_id, db=db)
     return version_entries
 
 
-@v1_router.post("/version/upload")
+@v1_router.post("/upload")
 async def api_version_upload(
     file: UploadFile,
     project_id: PrimaryKey = Form(...),
@@ -44,7 +44,7 @@ async def api_version_upload(
     return _version_upload(file=file, project_id=project_id, version=version, db=db)
 
 
-@v1_router.post("/version/delete")
+@v1_router.post("/delete")
 async def api_version_delete(
     project_id: PrimaryKey, version: NameStr, db: Session = Depends(get_db)
 ):

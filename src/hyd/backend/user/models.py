@@ -1,17 +1,11 @@
-from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, relationship
 
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.security import Scopes
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
 from hyd.backend.util.models import TimeStampMixin
-
-
-class TokenSchema(BaseModel):
-    access_token: str
-    token_type: str
 
 
 class UserEntry(DeclarativeMeta, TimeStampMixin):
@@ -23,8 +17,10 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
     is_admin = Column(Boolean)
     is_disabled = Column(Boolean, default=False)
 
-    token_entries = relationship("TokenEntry", back_populates="user_entry")
-    login_token_entries = relationship(
+    token_entries: Mapped[list[TokenEntry]] = relationship(
+        "TokenEntry", back_populates="user_entry"
+    )
+    login_token_entries: Mapped[list[TokenEntry]] = relationship(
         "TokenEntry",
         primaryjoin=("and_(TokenEntry.user_id==UserEntry.id, TokenEntry.is_login_token==True)"),
         viewonly=True,

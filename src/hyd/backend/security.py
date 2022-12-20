@@ -19,16 +19,28 @@ _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class Scopes:
     USER = "user"
     TOKEN = "token"
+    PROJECT = "project"
+    VERSION = "version"
+    TAG = "tag"
 
 
-SCOPES = {
-    Scopes.USER: "Basic user operations.",
-    Scopes.TOKEN: "Create and manage tokens.",
-}
+SCOPES = [
+    Scopes.USER,
+    Scopes.TOKEN,
+    Scopes.PROJECT,
+    Scopes.VERSION,
+    Scopes.TAG,
+]
 
 OAUTH2_SCHEME = OAuth2PasswordBearer(
     tokenUrl="/api/v1/user/login",
-    scopes=SCOPES,
+    scopes={
+        Scopes.USER: "Basic user operations.",
+        Scopes.TOKEN: "Manage tokens.",
+        Scopes.PROJECT: "Create, delete and list projects.",
+        Scopes.VERSION: "Manage versions for a project.",
+        Scopes.TAG: "Manage tags for a project.",
+    },
 )
 
 

@@ -24,6 +24,7 @@ LOGGER = HydLogger("Frontend")
 TEMPLATES = Jinja2Templates(directory=TEMPLATE_PATH)
 
 frontend_router = APIRouter(tags=["frontend"])
+footer_router = APIRouter(tags=["footer"])
 
 ####################################################################################################
 #### Frontend Endpoints
@@ -64,6 +65,53 @@ async def frontend_project(request: Request, project_name: NameStr, db: Session 
             "link_hosted_by": LINK_HOSTED_BY,
             "name_hosted_by": NAME_HOSTED_BY,
             "project": project_to_dict(project_entry),
+        },
+    )
+
+
+####################################################################################################
+#### Footer Endpoints
+####################################################################################################
+
+
+@footer_router.get("/loader.js", response_class=HTMLResponse)
+async def api_loader(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+
+    return TEMPLATES.TemplateResponse(
+        "loader.js",
+        {
+            "request": request,
+            "root_path": None,
+            "footer_path": "/footer/content.html",
+        },
+    )
+
+
+@footer_router.get("/content.html", response_class=HTMLResponse)
+async def api_loader(
+    request: Request,
+    project_name: str,
+    is_tag: bool,
+    tag_ver: str,
+    db: Session = Depends(get_db),
+):
+    tag_version_identifier = ("tag: " if is_tag else "version: ") + tag_ver
+
+    print(project_name, is_tag, tag_ver)
+
+    return TEMPLATES.TemplateResponse(
+        "footer.html",
+        {
+            "request": request,
+            "link_privacy": LINK_PRIVACY,
+            "link_impress": LINK_IMPRESS,
+            "link_hosted_by": LINK_HOSTED_BY,
+            "name_hosted_by": NAME_HOSTED_BY,
+            "project_name": project_name,
+            "tag_version_identifier": tag_version_identifier,
         },
     )
 

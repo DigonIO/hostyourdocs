@@ -64,7 +64,7 @@ function hyd_toggle_menu() {
 
 function hyd_close_menu(event) {
     const hyd_footer = document.getElementById('hyd-footer');
-    if (!hyd_footer.contains(event.target)) {
+    if (!hyd_footer.contains(event.target) && hyd_menu_open) {
         hyd_toggle_menu()
     }
 }

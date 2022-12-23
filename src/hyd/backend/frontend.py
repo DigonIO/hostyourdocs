@@ -129,7 +129,7 @@ def project_to_dict(project_entry: ProjectEntry) -> dict:
     return {
         "name": name,
         "tags": [
-            {"link": f"project/{name}/t/{entry.tag}", "tag": entry.tag}
+            {"link": f"project/{name}/t/{entry.tag}", "tag": entry.tag, "primary": entry.primary}
             for entry in tag_entries
             if entry.version
         ],

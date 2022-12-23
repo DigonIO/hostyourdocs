@@ -80,7 +80,7 @@ async def api_list(
         return [
             token_entry_to_meta_schema(entry)
             for entry in user_entry.token_entries
-            if (not entry.was_revoked and not entry.check_expiration(db=db))
+            if (not entry.revoked_at and not entry.check_expiration(db=db))
         ]
 
 
@@ -106,6 +106,6 @@ def token_entry_to_meta_schema(token_entry: TokenEntry) -> TokenMetaSchema:
         user_id=token_entry.user_id,
         is_login_token=token_entry.is_login_token,
         is_expired=token_entry.is_expired,
-        was_revoked=token_entry.was_revoked,
+        revoked_at=token_entry.revoked_at,
         scopes=[entry.scope for entry in token_entry.scope_entries],
     )

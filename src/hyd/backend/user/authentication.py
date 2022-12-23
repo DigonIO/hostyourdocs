@@ -54,7 +54,7 @@ def _authenticate(
         raise HTTPException_USER_DISABLED
 
     # check if a token is expired, login and api tokens
-    if token_entry.was_revoked or token_entry.check_expiration(db=db):
+    if token_entry.revoked_at or token_entry.check_expiration(db=db):
         raise HTTPException_VALIDATION
 
     # check scopes for permission handling

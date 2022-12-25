@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
+from hyd.backend.project import service as project_services
 from hyd.backend.security import Scopes, create_jwt
 from hyd.backend.token.models import TokenEntry, TokenMetaSchema, TokenSchema
 from hyd.backend.token.service import create_token, read_token, revoke_token_by_ref
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import SRV_TIMEZONE
+from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 
@@ -24,10 +26,11 @@ v1_router = APIRouter(tags=["token"])
 
 @v1_router.post("/create")
 async def api_create(
-    project_scope: bool = False,
-    version_scope: bool = False,
-    tag_scope: bool = False,
+    project_scope: bool,
+    version_scope: bool,
+    tag_scope: bool,
     expires: dt.datetime | dt.timedelta | None = None,
+    project_id: PrimaryKey = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
 ):
@@ -49,9 +52,19 @@ async def api_create(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    try:
+        _ = project_services.read_project(project_id=project_id, db=db)
+    except UnknownEntryError:
+        raise HTTPException  # TODO better msg
+
     user_id = user_entry.id
     token_entry = create_token(
-        user_id=user_id, expires=expires, scopes=scopes, is_login_token=False, db=db
+        user_id=user_id,
+        expires=expires,
+        scopes=scopes,
+        is_login_token=False,
+        project_id=project_id,
+        db=db,
     )
 
     access_token: str = create_jwt(
@@ -108,4 +121,5 @@ def token_entry_to_meta_schema(token_entry: TokenEntry) -> TokenMetaSchema:
         is_expired=token_entry.is_expired,
         revoked_at=token_entry.revoked_at,
         scopes=[entry.scope for entry in token_entry.scope_entries],
+        project_id=token_entry.project_id,
     )

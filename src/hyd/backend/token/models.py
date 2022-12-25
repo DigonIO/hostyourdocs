@@ -21,6 +21,7 @@ class TokenMetaSchema(BaseModel):
     is_expired: bool
     revoked_at: dt.datetime | None
     scopes: list[str]
+    project_id: PrimaryKey | None
 
 
 class TokenSchema(BaseModel):
@@ -38,6 +39,7 @@ class TokenEntry(DeclarativeMeta, TimeStampMixin):
     last_request = Column(DateTime(timezone=True), default=dt.datetime.now(tz=SRV_TIMEZONE))
     is_login_token = Column(Boolean)
     revoked_at = Column(DateTime(timezone=True), nullable=True, default=None)
+    project_id: Mapped[PrimaryKey] = Column(Integer, ForeignKey("project_table.id"), nullable=True)
 
     scope_entries: Mapped[list["TokenScopeEntry"]] = relationship(
         "TokenScopeEntry", back_populates="token_entry", cascade="all,delete"

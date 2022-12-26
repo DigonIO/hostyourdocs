@@ -35,7 +35,7 @@ credentials_exception = HTTPException(
 
 @v1_router.post("/login", response_model=TokenSchema)
 async def api_login(
-    remember_me: bool,
+    remember_me: bool = False,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
@@ -54,16 +54,17 @@ async def api_login(
         raise HTTPException_USER_DISABLED
 
     if remember_me:
-        expires = dt.datetime.now(tz=SRV_TIMEZONE) + REMEMBER_ME_DURATION
+        expires_on = dt.datetime.now(tz=SRV_TIMEZONE) + REMEMBER_ME_DURATION
     else:
-        expires = dt.datetime.now(tz=SRV_TIMEZONE)
+        expires_on = dt.datetime.now(tz=SRV_TIMEZONE)
 
     user_id = user_entry.id
     token_entry = token_service.create_token(
         user_id=user_id,
-        expires=expires,
+        expires_on=expires_on,
         scopes=SCOPES,
         is_login_token=True,
+        project_id=None,
         db=db,
     )
 

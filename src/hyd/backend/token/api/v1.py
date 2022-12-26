@@ -29,7 +29,7 @@ async def api_create(
     project_scope: bool,
     version_scope: bool,
     tag_scope: bool,
-    expires: dt.datetime | dt.timedelta | None = None,
+    expires_on: dt.datetime | dt.timedelta | None = None,
     project_id: PrimaryKey = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
@@ -43,9 +43,9 @@ async def api_create(
     if tag_scope:
         scopes.append(Scopes.TAG)
 
-    if isinstance(expires, dt.timedelta):
-        expires = dt.datetime.now(tz=SRV_TIMEZONE) + expires
-    elif isinstance(expires, dt.datetime) and expires.tzinfo is None:
+    if isinstance(expires_on, dt.timedelta):
+        expires_on = dt.datetime.now(tz=SRV_TIMEZONE) + expires_on
+    elif isinstance(expires_on, dt.datetime) and expires_on.tzinfo is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Expiration datetime must be timezone aware.",
@@ -60,7 +60,7 @@ async def api_create(
     user_id = user_entry.id
     token_entry = create_token(
         user_id=user_id,
-        expires=expires,
+        expires_on=expires_on,
         scopes=scopes,
         is_login_token=False,
         project_id=project_id,

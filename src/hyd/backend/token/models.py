@@ -16,7 +16,7 @@ from hyd.backend.util.models import PrimaryKey, TimeStampMixin
 class TokenMetaSchema(BaseModel):
     token_id: PrimaryKey
     user_id: PrimaryKey
-    expires: dt.datetime | None
+    expires_on: dt.datetime | None
     is_login_token: bool
     is_expired: bool
     revoked_at: dt.datetime | None
@@ -53,6 +53,9 @@ class TokenEntry(DeclarativeMeta, TimeStampMixin):
         if self.is_login_token:
             # graciously expire token after expiration datetime is reached
             # and the last request is older than a given threshold
+            import pdb
+
+            pdb.set_trace()
             if dt.datetime.now(tz=SRV_TIMEZONE) < self.expires_on:
                 return False
             if LOGIN_DURATION_AFTER_LAST_REQUEST < (

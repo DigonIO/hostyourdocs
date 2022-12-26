@@ -11,7 +11,7 @@ from hyd.backend.util.logger import HydLogger
 
 LOGGER = HydLogger("App")
 
-# DeclarativeMeta.metadata.drop_all(bind=engine)
+DeclarativeMeta.metadata.drop_all(bind=engine)
 DeclarativeMeta.metadata.create_all(bind=engine)
 
 

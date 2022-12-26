@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, relationship
 
@@ -5,7 +6,7 @@ from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.security import Scopes
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
-from hyd.backend.util.models import TimeStampMixin
+from hyd.backend.util.models import PrimaryKey, TimeStampMixin
 
 
 class UserEntry(DeclarativeMeta, TimeStampMixin):
@@ -35,3 +36,10 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
     def check_scope_permission(this, *, scope: Scopes) -> bool:  # TODO raise if None
         """Check if the given scope is permitted for the given session."""
         return scope.value in this._session_permitted_scopes
+
+    def check_token_project_permission(self, *, project_id: PrimaryKey) -> None:
+        token_project_id = self._session_token_entry.project_id
+        if token_project_id is None:
+            return
+        if token_project_id != project_id:
+            raise HTTPException  # TODO better msg

@@ -4,12 +4,15 @@ import shutil
 import tarfile
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Security, UploadFile
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
 from hyd.backend.mount_helper import MountHelper, path_to_version
+from hyd.backend.security import Scopes
 from hyd.backend.tag.models import TagEntry
+from hyd.backend.user.authentication import authenticate_user
+from hyd.backend.user.models import UserEntry
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.models import VersionEntry
@@ -29,26 +32,38 @@ v1_router = APIRouter(tags=["version"])
 ####################################################################################################
 
 
-@v1_router.get("/list")
-async def api_version_list(project_id: PrimaryKey, db: Session = Depends(get_db)):
-    version_entries = read_versions(project_id=project_id, db=db)
-    return version_entries
-
-
 @v1_router.post("/upload")
 async def api_version_upload(
     file: UploadFile,
     project_id: PrimaryKey = Form(...),
     version: NameStr = Form(...),
     db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
 ):
+    user_entry.check_token_project_permission(project_id=project_id)
+
     return _version_upload(file=file, project_id=project_id, version=version, db=db)
+
+
+@v1_router.get("/list")
+async def api_version_list(
+    project_id: PrimaryKey,
+    db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
+):
+    version_entries = read_versions(project_id=project_id, db=db)
+    return version_entries
 
 
 @v1_router.post("/delete")
 async def api_version_delete(
-    project_id: PrimaryKey, version: NameStr, db: Session = Depends(get_db)
+    project_id: PrimaryKey,
+    version: NameStr,
+    db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
 ):
+    user_entry.check_token_project_permission(project_id=project_id)
+
     version_entry = read_version(project_id=project_id, version=version, db=db)
     version_rm_mount_and_files(version_entry=version_entry, db=db)
     return version_entry

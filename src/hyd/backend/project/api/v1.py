@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 from typing import Union
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Security
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
@@ -12,6 +12,9 @@ from hyd.backend.project.service import (
     read_project,
     read_projects,
 )
+from hyd.backend.security import Scopes
+from hyd.backend.user.authentication import authenticate_user
+from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import PATH_PROJECTS
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
@@ -26,26 +29,43 @@ v1_router = APIRouter(tags=["project"])
 ####################################################################################################
 
 
+@v1_router.post("/create")
+async def api_create(
+    name: NameStr,
+    db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
+):
+    return create_project(name=name, db=db)
+
+
 @v1_router.get("/list")
-async def api_list(db: Session = Depends(get_db)):
+async def api_list(
+    db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
+):
     project_entries = read_projects(db=db)
     return project_entries
 
 
 @v1_router.get("/get")
-async def api_list(project_id: Union[int, str], db: Session = Depends(get_db)):
-    project_entries = read_project(project_id=project_id, db=db)
-    return project_entries
+async def api_list(
+    project_id: Union[int, str],
+    db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
+):
+    user_entry.check_token_project_permission(project_id=project_id)
 
-
-@v1_router.post("/create")
-async def api_create(name: NameStr, db: Session = Depends(get_db)):
-    project_entry = create_project(name=name, db=db)
-    return project_entry
+    return read_project(project_id=project_id, db=db)
 
 
 @v1_router.post("/delete")
-async def api_delete(project_id: PrimaryKey, db: Session = Depends(get_db)):
+async def api_delete(
+    project_id: PrimaryKey,
+    db: Session = Depends(get_db),
+    user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
+):
+    user_entry.check_token_project_permission(project_id=project_id)
+
     project_entry = read_project(project_id=project_id, db=db)
 
     for version_entry in project_entry.version_entries:

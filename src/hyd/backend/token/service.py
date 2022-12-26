@@ -15,14 +15,14 @@ LOGGER = HydLogger("TokenService")
 def create_token(
     *,
     user_id: PrimaryKey,
-    expires: dt.datetime | None,
+    expires_on: dt.datetime | None,
     scopes: list[str],
     is_login_token: bool,
     project_id: PrimaryKey | None,
     db: Session,
 ) -> TokenEntry:
     token_entry = TokenEntry(
-        user_id=user_id, expires=expires, is_login_token=is_login_token, project_id=project_id
+        user_id=user_id, expires_on=expires_on, is_login_token=is_login_token, project_id=project_id
     )
     db.add(token_entry)
     db.commit()

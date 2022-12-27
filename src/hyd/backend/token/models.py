@@ -53,9 +53,7 @@ class TokenEntry(DeclarativeMeta, TimeStampMixin):
         if self.is_login_token:
             # graciously expire token after expiration datetime is reached
             # and the last request is older than a given threshold
-            import pdb
 
-            pdb.set_trace()
             if dt.datetime.now(tz=SRV_TIMEZONE) < self.expires_on:
                 return False
             if LOGIN_DURATION_AFTER_LAST_REQUEST < (

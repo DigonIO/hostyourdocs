@@ -7,10 +7,11 @@ from hyd.backend.util.const import PATH_DATA
 
 EXTEND_EXISTING = True
 URL_SQLITE = f"sqlite:///{PATH_DATA}/hyd.db"
-# URL_MARIADB = f"mariadb+mariadbconnector://hyd_user:hyd_pw@127.0.0.1:3306/hyd_db"
+URL_MARIADB = f"mariadb+mariadbconnector://hyd_user:hyd_pw@127.0.0.1:3306/hyd_db"
+
 
 engine: sqlalchemy.engine.base.Engine = sqlalchemy.create_engine(
-    URL_SQLITE,
+    URL_MARIADB,
     # echo=True prints all SQL statements being executed to the console as they happen
     # echo=True,
     # use sqlalchemy.future.Engine for full 2.0 compatibility

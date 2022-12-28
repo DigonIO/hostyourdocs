@@ -62,8 +62,8 @@ def _authenticate(
         if scope not in permitted_scopes:
             raise HTTPException_NO_PERMISSION
 
-    user_entry._current_session_token_entry = token_entry
-    user_entry._current_permitted_scopes = permitted_scopes
+    user_entry._session_token_entry = token_entry
+    user_entry._session_permitted_scopes = permitted_scopes
     token_entry._last_request = dt.datetime.now(tz=UTC)
 
     LOGGER.info(

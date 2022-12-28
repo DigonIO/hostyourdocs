@@ -30,12 +30,12 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
     _session_token_entry: TokenEntry | None = None
     _session_permitted_scopes: list[str] | None = None
 
-    def get_session_token_entry(this) -> TokenEntry:  # TODO raise if None
-        return this._current_session_token_entry
+    def get_session_token_entry(self) -> TokenEntry:  # TODO raise if None
+        return self._session_token_entry
 
-    def check_scope_permission(this, *, scope: Scopes) -> bool:  # TODO raise if None
+    def check_scope_permission(self, *, scope: str) -> bool:  # TODO raise if None
         """Check if the given scope is permitted for the given session."""
-        return scope.value in this._session_permitted_scopes
+        return scope in self._session_permitted_scopes
 
     def check_token_project_permission(self, *, project_id: PrimaryKey) -> None:
         token_project_id = self._session_token_entry.project_id

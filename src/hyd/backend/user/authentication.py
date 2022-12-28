@@ -45,7 +45,10 @@ def _authenticate(
         LOGGER.error("Faulty or manipulated token used {token: %s, error: %s}", token, err)
         raise HTTPException_VALIDATION
 
-    token_entry: TokenEntry = token_service.read_token(token_id=jwt.id, db=db)
+    token_entry: TokenEntry = token_service.read_token(token_id=jwt.id, db=db)  # TODO raise if None
+    if token_entry is None:
+        raise HTTPException_VALIDATION
+
     permitted_scopes: list[str] = [entry.scope for entry in token_entry.scope_entries]
     user_entry: UserEntry = token_entry.user_entry
 

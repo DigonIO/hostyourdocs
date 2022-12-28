@@ -26,22 +26,11 @@ v1_router = APIRouter(tags=["token"])
 
 @v1_router.post("/create")
 async def api_create(
-    project_scope: bool,
-    version_scope: bool,
-    tag_scope: bool,
-    expires_on: dt.datetime | dt.timedelta | None = None,
     project_id: PrimaryKey = None,
+    expires_on: dt.datetime | dt.timedelta | None = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
 ):
-
-    scopes = []
-    if project_scope:
-        scopes.append(Scopes.PROJECT)
-    if version_scope:
-        scopes.append(Scopes.VERSION)
-    if tag_scope:
-        scopes.append(Scopes.TAG)
 
     if isinstance(expires_on, dt.timedelta):
         expires_on = dt.datetime.now(tz=UTC) + expires_on
@@ -58,6 +47,7 @@ async def api_create(
         raise HTTPException  # TODO better msg
 
     user_id = user_entry.id
+    scopes = [Scopes.PROJECT, Scopes.VERSION, Scopes.TAG]
     token_entry = create_token(
         user_id=user_id,
         expires_on=expires_on.astimezone(UTC),

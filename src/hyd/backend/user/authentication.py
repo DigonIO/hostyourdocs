@@ -42,11 +42,20 @@ def _authenticate(
     try:
         jwt: JWT = verify_jwt(token=token)
     except VerificationError as err:
-        LOGGER.error("Faulty or manipulated token used {token: %s, error: %s}", token, err)
+        LOGGER.warning(
+            "Token verification failed! {token: %s, error: %s}",
+            token,
+            err,
+        )
         raise HTTPException_VALIDATION
 
     token_entry: TokenEntry = token_service.read_token(token_id=jwt.id, db=db)  # TODO raise if None
     if token_entry is None:
+        LOGGER.warning(
+            "Verified token not found in database! {token: %s, error: %s}",
+            token,
+            err,
+        )
         raise HTTPException_VALIDATION
 
     permitted_scopes: list[str] = [entry.scope for entry in token_entry.scope_entries]
@@ -54,15 +63,33 @@ def _authenticate(
 
     # check if an user is disabled, because one login tokens expire while disabling an user
     if user_entry.is_disabled:
+        LOGGER.warning(
+            "Token belongs to deactivated user! {token_id: %d, user_id: %d, username: %s}",
+            token_entry.id,
+            user_entry.id,
+            user_entry.username,
+        )
         raise HTTPException_USER_DISABLED
 
     # check if a token is expired, login and api tokens
     if token_entry.revoked_at or token_entry.check_expiration(db=db):
+        LOGGER.warning(
+            "Revoked or expired token used! {token_id: %d, user_id: %d, username: %s}",
+            token_entry.id,
+            user_entry.id,
+            user_entry.username,
+        )
         raise HTTPException_VALIDATION
 
     # check scopes for permission handling
     for scope in security_scopes.scopes:
         if scope not in permitted_scopes:
+            LOGGER.warning(
+                "Token lacks scopes! {token_id: %d, user_id: %d, username: %s}",
+                token_entry.id,
+                user_entry.id,
+                user_entry.username,
+            )
             raise HTTPException_NO_PERMISSION
 
     user_entry._session_token_entry = token_entry
@@ -70,7 +97,7 @@ def _authenticate(
     token_entry._last_request = dt.datetime.now(tz=UTC)
 
     LOGGER.info(
-        "Authentication successfully {token_id: %d, user_id: %d, username: %s, scopes: %s}",
+        "{token_id: %d, user_id: %d, username: %s, scopes: %s}",
         jwt.id,
         user_entry.id,
         user_entry.username,

@@ -26,18 +26,30 @@ v1_router = APIRouter(tags=["tag"])
 
 
 @v1_router.post("/create")
-async def api_tag_create(
+async def _create(
     project_id: PrimaryKey,
     tag: NameStr,
     primary: bool = False,
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
-    return create_tag_entry(project_id=project_id, tag=tag, primary=primary, db=db)
+    tag_entry = create_tag_entry(project_id=project_id, tag=tag, primary=primary, db=db)
+
+    project_entry = tag_entry.project_entry
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, tag: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        project_entry.name,
+        tag,
+    )
+    return tag_entry
 
 
 @v1_router.get("/list")
-async def api_tag_list(
+async def _list(
     project_id: PrimaryKey,
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
@@ -47,7 +59,7 @@ async def api_tag_list(
 
 
 @v1_router.post("/move")
-async def api_tag_set(
+async def _move(
     project_id: PrimaryKey,
     tag: NameStr,
     version: NameStr,
@@ -66,11 +78,23 @@ async def api_tag_set(
     db.commit()
 
     MountHelper.mount_tag(tag_entry=tag_entry)
+
+    project_entry = tag_entry.project_entry
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, tag: %s, version: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        project_entry.name,
+        tag,
+        version,
+    )
     return tag_entry
 
 
 @v1_router.post("/delete")
-async def api_tag_delete(
+async def _delete(
     project_id: PrimaryKey,
     tag: NameStr,
     db: Session = Depends(get_db),
@@ -82,4 +106,15 @@ async def api_tag_delete(
     if tag_entry.version is not None:
         MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)
     delete_tag_entry_by_ref(tag_entry=tag_entry, db=db)
+
+    project_entry = tag_entry.project_entry
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, tag: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        project_entry.name,
+        tag,
+    )
     return tag_entry

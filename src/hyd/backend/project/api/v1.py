@@ -30,16 +30,25 @@ v1_router = APIRouter(tags=["project"])
 
 
 @v1_router.post("/create")
-async def api_create(
+async def _create(
     name: NameStr,
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
-    return create_project(name=name, db=db)
+    project_entry = create_project(name=name, db=db)
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        name,
+    )
+    return project_entry
 
 
 @v1_router.get("/list")
-async def api_list(
+async def _list(
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
@@ -48,18 +57,17 @@ async def api_list(
 
 
 @v1_router.get("/get")
-async def api_list(
+async def _get(
     project_id: Union[int, str],
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
     user_entry.check_token_project_permission(project_id=project_id)
-
     return read_project(project_id=project_id, db=db)
 
 
 @v1_router.post("/delete")
-async def api_delete(
+async def _delete(
     project_id: PrimaryKey,
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
@@ -75,6 +83,14 @@ async def api_delete(
 
     shutil.rmtree(_path_to_project(project_id))
 
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        project_entry.name,
+    )
     return project_entry
 
 

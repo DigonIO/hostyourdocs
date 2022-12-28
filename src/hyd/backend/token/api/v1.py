@@ -25,7 +25,7 @@ v1_router = APIRouter(tags=["token"])
 
 
 @v1_router.post("/create")
-async def api_create(
+async def _create(
     project_id: PrimaryKey = None,
     expires_on: dt.datetime | dt.timedelta | None = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
@@ -62,17 +62,17 @@ async def api_create(
     )
 
     LOGGER.info(
-        "Token created {token_id: %d, user_id: %d, username: %s, scopes: %s}",
-        token_entry.id,
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d}",
+        user_entry.get_session_token_entry().id,
         user_entry.id,
         user_entry.username,
-        scopes,
+        project_id if project_id else 0,
     )
     return TokenSchema(access_token=access_token, token_type="bearer")
 
 
 @v1_router.post("/list")
-async def api_list(
+async def _list(
     include_expired_revoked: bool = False,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
@@ -88,13 +88,21 @@ async def api_list(
 
 
 @v1_router.post("/revoke")
-async def api_revoke(
+async def _revoke(
     token_id: PrimaryKey,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
 ):
     token_entry = read_token(token_id=token_id, db=db)
     revoke_token_by_ref(token_entry=token_entry, db=db)
+
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, revoked_token_id: %d}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        token_id,
+    )
     return token_entry_to_meta_schema(token_entry)
 
 

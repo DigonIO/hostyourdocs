@@ -35,7 +35,7 @@ credentials_exception = HTTPException(
 
 
 @v1_router.post("/login", response_model=TokenSchema)
-async def api_login(
+async def _login(
     remember_me: bool = False,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
@@ -44,14 +44,28 @@ async def api_login(
     try:
         user_entry: UserEntry = read_users_by_username(username=username, db=db)
     except UnknownEntryError:
+        LOGGER.warning(
+            "Unknown username {username: %s}",
+            username,
+        )
         raise credentials_exception
 
     if not verify_password(
         plain_password=form_data.password, hashed_password=user_entry.hashed_password
     ):
+        LOGGER.warning(
+            "Wrong password {user_id: %d, username: %s}",
+            user_entry.id,
+            username,
+        )
         raise credentials_exception
 
     if user_entry.is_disabled:
+        LOGGER.warning(
+            "Disabled {user_id: %d, username: %s}",
+            user_entry.id,
+            username,
+        )
         raise HTTPException_USER_DISABLED
 
     expires_on = dt.datetime.now(tz=UTC)
@@ -72,11 +86,10 @@ async def api_login(
         token_id=token_entry.id, user_id=user_id, username=username, scopes=SCOPES
     )
     LOGGER.info(
-        "Login successfully {token_id: %d, user_id: %d, username: %s, scopes: %s}",
+        "{token_id: %d, user_id: %d, username: %s}",
         token_entry.id,
         user_entry.id,
-        user_entry.username,
-        SCOPES,
+        username,
     )
     return TokenSchema(access_token=access_token, token_type="bearer")
 
@@ -87,17 +100,24 @@ async def api_login(
 
 
 @v1_router.post("/logout")
-async def api_logout(
+async def _logout(
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER]),
     db: Session = Depends(get_db),
 ):
     token_entry = user_entry.get_session_token_entry()
     token_service.revoke_token_by_ref(token_entry=token_entry, db=db)
+
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s}",
+        token_entry.id,
+        user_entry.id,
+        user_entry.username,
+    )
     return f"Logout {user_entry.username} :("  # TODO Refactor result
 
 
 @v1_router.post("/change_password")
-async def api_change_password(
+async def _change_password(
     current_password: str,
     new_password: str,
     new_password_repetition: str,
@@ -107,14 +127,26 @@ async def api_change_password(
     if not verify_password(
         plain_password=current_password, hashed_password=user_entry.hashed_password
     ):
+        LOGGER.info(
+            "{token_id: %d, user_id: %d, username: %s}",
+            user_entry.get_session_token_entry().id,
+            user_entry.id,
+            user_entry.username,
+        )
         raise credentials_exception
 
     if new_password != new_password_repetition:
         ...  # TODO Raise exception
 
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+    )
     update_user_pw_by_ref(user_entry=user_entry, new_password=new_password, db=db)
 
 
 @v1_router.get("/greet")
-async def api_greet(user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER])):
+async def _greet(user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER])):
     return f"Hello {user_entry.username} :)"  # TODO Refactor result

@@ -21,7 +21,7 @@ LOGGER = HydLogger("MountHelper")
 class MountHelper:
     router: Router
 
-    url_route_mapping: dict[str, BaseRoute] = {}
+    url_route_mapping: dict[str, tuple[Path, BaseRoute]] = {}
 
     @classmethod
     def set_router(cls, router: Router) -> None:
@@ -37,16 +37,18 @@ class MountHelper:
         path = path_to_version(id, vers)
 
         cls.router.mount(relative_url, StaticFiles(directory=path, html=True))
-        cls.url_route_mapping[relative_url] = cls.router.routes[-1]
+        cls.url_route_mapping[relative_url] = (path, cls.router.routes[-1])
 
-        LOGGER.info("%s -> %s", relative_url, path)
+        LOGGER.debug("%s --> %s", relative_url, path)
 
     @classmethod
     def unmount_version(cls, project_name: NameStr, version: NameStr) -> None:
         relative_url = _relative_version_url(project_name, version)
 
-        route = cls.url_route_mapping[relative_url]
+        path, route = cls.url_route_mapping[relative_url]
         cls.router.routes.remove(route)
+
+        LOGGER.debug("%s -x- %s", relative_url, path)
 
     @classmethod
     def mount_tag(cls, tag_entry: TagEntry) -> None:
@@ -59,16 +61,18 @@ class MountHelper:
         path = path_to_version(id, version)
 
         cls.router.mount(relative_url, StaticFiles(directory=path, html=True))
-        cls.url_route_mapping[relative_url] = cls.router.routes[-1]
+        cls.url_route_mapping[relative_url] = (path, cls.router.routes[-1])
 
-        LOGGER.info("%s -> %s", relative_url, path)
+        LOGGER.debug("%s --> %s", relative_url, path)
 
     @classmethod
     def unmount_tag(cls, project_name: NameStr, tag: NameStr) -> None:
         relative_url = _relative_tag_url(project_name, tag)
 
-        route = cls.url_route_mapping[relative_url]
+        path, route = cls.url_route_mapping[relative_url]
         cls.router.routes.remove(route)
+
+        LOGGER.debug("%s -x- %s", relative_url, path)
 
     @classmethod
     def mount_existing_projects(cls, *, db: Session) -> None:

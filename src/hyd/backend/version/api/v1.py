@@ -33,7 +33,7 @@ v1_router = APIRouter(tags=["version"])
 
 
 @v1_router.post("/upload")
-async def api_version_upload(
+async def _upload(
     file: UploadFile,
     project_id: PrimaryKey = Form(...),
     version: NameStr = Form(...),
@@ -41,12 +41,23 @@ async def api_version_upload(
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
 ):
     user_entry.check_token_project_permission(project_id=project_id)
+    version_entry = _version_upload(file=file, project_id=project_id, version=version, db=db)
 
-    return _version_upload(file=file, project_id=project_id, version=version, db=db)
+    project_entry = version_entry.project_entry
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, version: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        project_entry.name,
+        version,
+    )
+    return version_entry
 
 
 @v1_router.get("/list")
-async def api_version_list(
+async def _list(
     project_id: PrimaryKey,
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
@@ -56,7 +67,7 @@ async def api_version_list(
 
 
 @v1_router.post("/delete")
-async def api_version_delete(
+async def _delete(
     project_id: PrimaryKey,
     version: NameStr,
     db: Session = Depends(get_db),
@@ -66,6 +77,17 @@ async def api_version_delete(
 
     version_entry = read_version(project_id=project_id, version=version, db=db)
     version_rm_mount_and_files(version_entry=version_entry, db=db)
+
+    project_entry = version_entry.project_entry
+    LOGGER.info(
+        "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, version: %s}",
+        user_entry.get_session_token_entry().id,
+        user_entry.id,
+        user_entry.username,
+        project_entry.id,
+        project_entry.name,
+        version,
+    )
     return version_entry
 
 

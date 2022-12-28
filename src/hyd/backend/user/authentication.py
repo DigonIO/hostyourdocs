@@ -9,10 +9,10 @@ from hyd.backend.db import get_db
 from hyd.backend.security import JWT, OAUTH2_SCHEME, verify_jwt
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.user.models import UserEntry
-from hyd.backend.util.const import SRV_TIMEZONE
 from hyd.backend.util.error import VerificationError
 from hyd.backend.util.logger import HydLogger
 
+UTC = dt.timezone.utc
 LOGGER = HydLogger("Authentication")
 
 HEADERS = {"WWW-Authenticate": "Bearer"}
@@ -64,7 +64,7 @@ def _authenticate(
 
     user_entry._current_session_token_entry = token_entry
     user_entry._current_permitted_scopes = permitted_scopes
-    token_entry.last_request = dt.datetime.now(tz=SRV_TIMEZONE)
+    token_entry._last_request = dt.datetime.now(tz=UTC)
 
     LOGGER.info(
         "Authentication successfully {token_id: %d, user_id: %d, username: %s, scopes: %s}",

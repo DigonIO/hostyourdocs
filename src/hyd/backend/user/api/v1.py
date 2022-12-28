@@ -14,10 +14,11 @@ from hyd.backend.user.authentication import (
 )
 from hyd.backend.user.models import UserEntry
 from hyd.backend.user.service import read_users_by_username, update_user_pw_by_ref
-from hyd.backend.util.const import REMEMBER_ME_DURATION, SRV_TIMEZONE
+from hyd.backend.util.const import REMEMBER_ME_DURATION
 from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 
+UTC = dt.timezone.utc
 LOGGER = HydLogger("UserAPI")
 
 v1_router = APIRouter(tags=["user"])
@@ -53,10 +54,9 @@ async def api_login(
     if user_entry.is_disabled:
         raise HTTPException_USER_DISABLED
 
+    expires_on = dt.datetime.now(tz=UTC)
     if remember_me:
-        expires_on = dt.datetime.now(tz=SRV_TIMEZONE) + REMEMBER_ME_DURATION
-    else:
-        expires_on = dt.datetime.now(tz=SRV_TIMEZONE)
+        expires_on = expires_on + REMEMBER_ME_DURATION
 
     user_id = user_entry.id
     token_entry = token_service.create_token(

@@ -4,11 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from hyd.backend.token.models import TokenEntry, TokenScopeEntry
-from hyd.backend.util.const import SRV_TIMEZONE
 from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 
+UTC = dt.timezone.utc
 LOGGER = HydLogger("TokenService")
 
 
@@ -50,5 +50,5 @@ def read_tokens(*, db: Session) -> list[TokenEntry]:
 
 
 def revoke_token_by_ref(*, token_entry: TokenEntry, db: Session) -> None:
-    token_entry.revoked_at = dt.datetime.now(tz=SRV_TIMEZONE)
+    token_entry._revoked_at = dt.datetime.now(tz=UTC)
     db.commit()

@@ -10,11 +10,11 @@ from hyd.backend.token.models import TokenEntry, TokenMetaSchema, TokenSchema
 from hyd.backend.token.service import create_token, read_token, revoke_token_by_ref
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
-from hyd.backend.util.const import SRV_TIMEZONE
 from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 
+UTC = dt.timezone.utc
 LOGGER = HydLogger("TokenAPI")
 
 v1_router = APIRouter(tags=["token"])
@@ -44,7 +44,7 @@ async def api_create(
         scopes.append(Scopes.TAG)
 
     if isinstance(expires_on, dt.timedelta):
-        expires_on = dt.datetime.now(tz=SRV_TIMEZONE) + expires_on
+        expires_on = dt.datetime.now(tz=UTC) + expires_on
     elif isinstance(expires_on, dt.datetime) and expires_on.tzinfo is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -60,7 +60,7 @@ async def api_create(
     user_id = user_entry.id
     token_entry = create_token(
         user_id=user_id,
-        expires_on=expires_on,
+        expires_on=expires_on.astimezone(UTC),
         scopes=scopes,
         is_login_token=False,
         project_id=project_id,
@@ -93,7 +93,7 @@ async def api_list(
         return [
             token_entry_to_meta_schema(entry)
             for entry in user_entry.token_entries
-            if (not entry.revoked_at and not entry.check_expiration(db=db))
+            if (not entry._revoked_at and not entry.check_expiration(db=db))
         ]
 
 
@@ -119,7 +119,7 @@ def token_entry_to_meta_schema(token_entry: TokenEntry) -> TokenMetaSchema:
         user_id=token_entry.user_id,
         is_login_token=token_entry.is_login_token,
         is_expired=token_entry.is_expired,
-        revoked_at=token_entry.revoked_at,
+        revoked_at=token_entry._revoked_at,
         scopes=[entry.scope for entry in token_entry.scope_entries],
         project_id=token_entry.project_id,
     )

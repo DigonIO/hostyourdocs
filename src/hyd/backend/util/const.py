@@ -6,8 +6,6 @@ from pathlib import Path
 
 import hyd
 
-SRV_TIMEZONE = dt.timezone.utc
-
 REMEMBER_ME_DURATION = dt.timedelta(days=30)
 LOGIN_DURATION_AFTER_LAST_REQUEST = dt.timedelta(minutes=10)
 

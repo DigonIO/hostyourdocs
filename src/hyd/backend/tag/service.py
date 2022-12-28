@@ -14,6 +14,7 @@ def create_tag_entry(project_id: PrimaryKey, tag: NameStr, primary: bool, db: Se
 
     tag_entry = TagEntry(project_id=project_id, tag=tag, primary=primary)
     db.add(tag_entry)
+    db.commit()
 
     if primary:
         primary_tag_entry = PrimaryTagEntry(project_id=project_id, primary_tag=tag)

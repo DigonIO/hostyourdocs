@@ -39,7 +39,7 @@ class TokenEntry(DeclarativeMeta, TimeStampMixin):
     is_expired = Column(Boolean, default=False)
     project_id: Mapped[PrimaryKey] = Column(Integer, ForeignKey("project_table.id"), nullable=True)
     _expires_on: Mapped[dt.datetime] = Column(DateTime, nullable=True)
-    _last_request = Column(DateTime, default=dt.datetime.now(tz=UTC))
+    _last_request = Column(DateTime, default=dt.datetime.utcnow)
     _revoked_at = Column(DateTime, nullable=True, default=None)
 
     scope_entries: Mapped[list["TokenScopeEntry"]] = relationship(

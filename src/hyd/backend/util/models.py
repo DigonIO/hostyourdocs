@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dt
 
 from fastapi import status
 from pydantic.types import conint, constr
@@ -18,7 +18,7 @@ NameStr = constr(
 class TimeStampMixin(object):
     """Timestamping mixin"""
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=dt.datetime.utcnow)
     updated_at = Column(DateTime, default=None)
     # NOTE maybe this a better solution https://stackoverflow.com/questions/3923910/sqlalchemy-move-mixin-columns-to-end
     created_at._creation_order = 9998
@@ -26,7 +26,7 @@ class TimeStampMixin(object):
 
     @staticmethod
     def _updated_at(mapper, connection, target):
-        target.updated_at = datetime.utcnow()
+        target.updated_at = dt.datetime.utcnow()
 
     @classmethod
     def __declare_last__(cls):

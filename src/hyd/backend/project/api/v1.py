@@ -16,7 +16,11 @@ from hyd.backend.security import Scopes
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS, PATH_PROJECTS
-from hyd.backend.util.error import HTTPException_UNKNOWN_PROJECT, UnknownProjectError
+from hyd.backend.util.error import (
+    HTTPException_UNKNOWN_PROJECT,
+    NameStrError,
+    UnknownProjectError,
+)
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.api.v1 import version_rm_mount_and_files
@@ -48,7 +52,7 @@ async def _create(
 ):
     try:
         project_entry = create_project(name=name, db=db)
-    except NameError:
+    except NameStrError:
         raise HTTPException_PROJECT_NAME_NOT_AVAILABLE
 
     LOGGER.info(

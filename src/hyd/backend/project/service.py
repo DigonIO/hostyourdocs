@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from hyd.backend.project.models import ProjectEntry
-from hyd.backend.util.error import NameError, UnknownProjectError
+from hyd.backend.util.error import NameStrError, UnknownProjectError
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 
@@ -13,7 +13,7 @@ def create_project(*, name: NameStr, db: Session) -> ProjectEntry:
     try:
         db.commit()
     except IntegrityError:
-        raise NameError
+        raise NameStrError
 
     return project_entry
 

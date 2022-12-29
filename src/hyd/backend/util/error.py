@@ -11,7 +11,7 @@ class HydError(Exception):
     """Generic HostYourDocs exception."""
 
 
-class NameError(HydError):
+class NameStrError(HydError):
     """Raised if a name is not available."""
 
 

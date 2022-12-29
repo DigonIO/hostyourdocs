@@ -4,7 +4,7 @@ version: '3'
 
 services:
   hyd_backend:
-    image: hyd:<TAG>
+    image: registry.gitlab.com/digonio/hostyourdocs:<TAG>
     restart: always
     volumes:
       - data_backend:/data

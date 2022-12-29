@@ -8,19 +8,23 @@ from hyd.backend.util.const import HEADERS
 
 
 class HydError(Exception):
-    """Generic i2d server exception."""
+    """Generic HostYourDocs exception."""
 
 
-class UsernameError(HydError):
-    ...
+class NameError(HydError):
+    """Raised if a name is not available."""
+
+
+class PrimaryTagError(HydError):
+    """Raised if a second primary tag would be created for a project."""
 
 
 class VerificationError(HydError):
-    "JTW Verification Error"
+    """Raised if an error occurs while JTW verification."""
 
 
 class UnknownEntryError(HydError):
-    pass
+    """Raised if a db table could not be found."""
 
 
 ####################################################################################################
@@ -40,7 +44,7 @@ HTTPException_NO_PERMISSION = HTTPException(
 )
 
 HTTPException_UNKNOWN_PROJECT = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
+    status_code=status.HTTP_400_BAD_REQUEST,
     detail="Unknown project ID!",
     headers=HEADERS,
 )

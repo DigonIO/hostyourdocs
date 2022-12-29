@@ -3,9 +3,9 @@ from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, relationship
 
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.backend.security import Scopes
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
+from hyd.backend.util.error import HTTPException_NO_PERMISSION
 from hyd.backend.util.models import PrimaryKey, TimeStampMixin
 
 
@@ -42,4 +42,4 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
         if token_project_id is None:
             return
         if token_project_id != project_id:
-            raise HTTPException  # TODO better msg
+            raise HTTPException_NO_PERMISSION

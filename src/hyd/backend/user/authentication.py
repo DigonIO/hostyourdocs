@@ -9,13 +9,20 @@ from hyd.backend.db import get_db
 from hyd.backend.security import JWT, OAUTH2_SCHEME, verify_jwt
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.user.models import UserEntry
-from hyd.backend.util.error import VerificationError
+from hyd.backend.util.const import HEADERS
+from hyd.backend.util.error import (
+    HTTPException_NO_PERMISSION,
+    HTTPException_USER_DISABLED,
+    VerificationError,
+)
 from hyd.backend.util.logger import HydLogger
 
 UTC = dt.timezone.utc
 LOGGER = HydLogger("Authentication")
 
-HEADERS = {"WWW-Authenticate": "Bearer"}
+####################################################################################################
+#### HTTP Exceptions
+####################################################################################################
 
 HTTPException_VALIDATION = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -23,17 +30,18 @@ HTTPException_VALIDATION = HTTPException(
     headers=HEADERS,
 )
 
-HTTPException_USER_DISABLED = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="User is disabled!",
-    headers=HEADERS,
-)
+####################################################################################################
+#### Authentication logic
+####################################################################################################
 
-HTTPException_NO_PERMISSION = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Not enough permissions!",
-    headers=HEADERS,
-)
+
+async def authenticate_user(
+    security_scopes: SecurityScopes,
+    token: str = Depends(OAUTH2_SCHEME),
+    db: Session = Depends(get_db),
+) -> UserEntry:
+    user_entry, _token_entry = _authenticate(security_scopes, token, db)
+    return user_entry
 
 
 def _authenticate(
@@ -104,12 +112,3 @@ def _authenticate(
         permitted_scopes,
     )
     return user_entry, token_entry
-
-
-async def authenticate_user(
-    security_scopes: SecurityScopes,
-    token: str = Depends(OAUTH2_SCHEME),
-    db: Session = Depends(get_db),
-) -> UserEntry:
-    user_entry, _token_entry = _authenticate(security_scopes, token, db)
-    return user_entry

@@ -10,6 +10,7 @@ from hyd.backend.token.models import TokenEntry, TokenMetaSchema, TokenSchema
 from hyd.backend.token.service import create_token, read_token, revoke_token_by_ref
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
+from hyd.backend.util.const import HEADERS
 from hyd.backend.util.error import UnknownEntryError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
@@ -20,13 +21,23 @@ LOGGER = HydLogger("TokenAPI")
 v1_router = APIRouter(tags=["token"])
 
 ####################################################################################################
+#### HTTP Exceptions
+####################################################################################################
+
+HTTPException_TIMEZONE_AWARE = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Expiration datetime must be timezone aware.",
+    headers=HEADERS,
+)
+
+####################################################################################################
 #### Scope: TOKEN
 ####################################################################################################
 
 
 @v1_router.post("/create")
 async def _create(
-    project_id: PrimaryKey = None,
+    project_id: PrimaryKey,
     expires_on: dt.datetime | dt.timedelta | None = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
@@ -35,11 +46,7 @@ async def _create(
     if isinstance(expires_on, dt.timedelta):
         expires_on = dt.datetime.now(tz=UTC) + expires_on
     elif isinstance(expires_on, dt.datetime) and expires_on.tzinfo is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Expiration datetime must be timezone aware.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException_TIMEZONE_AWARE
 
     try:
         _ = project_services.read_project(project_id=project_id, db=db)

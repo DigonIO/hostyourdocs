@@ -1,4 +1,3 @@
-from fastapi import HTTPException
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, relationship
 

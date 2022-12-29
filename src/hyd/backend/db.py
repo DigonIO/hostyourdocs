@@ -3,11 +3,19 @@ import sqlalchemy.orm
 from fastapi import Request
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from hyd.backend.util.const import PATH_DATA
+from hyd.backend.util.const import MARIADB_ADDRESS, MARIADB_PASSWORD
+from hyd.backend.util.error import HydError
 
 EXTEND_EXISTING = True
-URL_SQLITE = f"sqlite:///{PATH_DATA}/hyd.db"
-URL_MARIADB = f"mariadb+mariadbconnector://hyd_user:hyd_pw@127.0.0.1:3306/hyd_db"
+
+if MARIADB_PASSWORD is None:
+    raise HydError("MARIADB_PASSWORD is missing!")
+if MARIADB_ADDRESS is None:
+    raise HydError("MARIADB_ADDRESS is missing!")
+
+URL_MARIADB = (
+    f"mariadb+mariadbconnector://hyd_user:{MARIADB_PASSWORD}@{MARIADB_ADDRESS}:3306/hyd_db"
+)
 
 
 engine: sqlalchemy.engine.base.Engine = sqlalchemy.create_engine(

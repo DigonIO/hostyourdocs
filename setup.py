@@ -2,17 +2,18 @@ from setuptools import setup
 
 setup(
     name="hyd",
-    python_requires=">=3.10",
+    python_requires=">=3.10.9",
     install_requires=[
-        "fastapi>=0.68.1",
-        "passlib[bcrypt]>=1.7.4",
-        "sqlalchemy>=1.4.35",
-        "python-multipart>=0.0.5",
-        "mariadb>=1.0.11",
-        "pydantic>=1.8.2",
-        "python-jose[cryptography]>=3.3.0",
-        "feedparser>=6.0.3",
-        "uvicorn>=0.18.2",
+        "uvicorn==0.18.2",
+        "fastapi==0.88.0",
+        "pydantic==1.10.2",
+        "sqlalchemy==1.4.35",
+        "mariadb==1.0.11",
+        "passlib[bcrypt]==1.7.4",
+        "python-multipart==0.0.5",
+        "python-jose[cryptography]==3.3.0",
+        "feedparser==6.0.3",
+        "Jinja2==3.1.2",
     ],
     extras_require={
         "dev": "pre-commit==2.20.0",

@@ -1,4 +1,9 @@
+# Tmp data
+build_image/
+
+# Environment
 venv/
+*.env
 
 # Byte-compiled / optimized / DLL files
 .DS_Store

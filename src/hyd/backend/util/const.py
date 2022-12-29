@@ -10,6 +10,9 @@ import hyd
 
 SECRET_KEY: str | None = os.getenv("SECRET_KEY")
 
+MARIADB_PASSWORD: str | None = os.getenv("MARIADB_PASSWORD")
+MARIADB_ADDRESS: str | None = os.getenv("MARIADB_ADDRESS")
+
 ROOT_PATH: str | None = os.getenv("ROOT_PATH")  # optional
 
 NAME_HOSTED_BY: str | None = os.getenv("NAME_HOSTED_BY")  # optional

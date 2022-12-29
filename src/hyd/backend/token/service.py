@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from hyd.backend.token.models import TokenEntry, TokenScopeEntry
-from hyd.backend.util.error import UnknownEntryError
+from hyd.backend.util.error import UnknownTokenError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 
@@ -41,7 +41,7 @@ def read_token(*, token_id: int, db: Session) -> TokenEntry:
     try:
         token_entry = db.query(TokenEntry).get(token_id)
     except IntegrityError:
-        raise UnknownEntryError
+        raise UnknownTokenError
     return token_entry
 
 

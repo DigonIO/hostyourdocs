@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 from typing import Union
 
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
@@ -15,8 +15,8 @@ from hyd.backend.project.service import (
 from hyd.backend.security import Scopes
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
-from hyd.backend.util.const import PATH_PROJECTS
-from hyd.backend.util.error import HTTPException_UNKNOWN_PROJECT
+from hyd.backend.util.const import HEADERS, PATH_PROJECTS
+from hyd.backend.util.error import HTTPException_UNKNOWN_PROJECT, UnknownProjectError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.api.v1 import version_rm_mount_and_files
@@ -24,6 +24,16 @@ from hyd.backend.version.api.v1 import version_rm_mount_and_files
 LOGGER = HydLogger("ProjectAPI")
 
 v1_router = APIRouter(tags=["project"])
+
+####################################################################################################
+#### HTTP Exceptions
+####################################################################################################
+
+HTTPException_PROJECT_NAME_NOT_AVAILABLE = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Project name not available!",
+    headers=HEADERS,
+)
 
 ####################################################################################################
 #### Scope: PROJECT
@@ -36,7 +46,11 @@ async def _create(
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
-    project_entry = create_project(name=name, db=db)
+    try:
+        project_entry = create_project(name=name, db=db)
+    except NameError:
+        raise HTTPException_PROJECT_NAME_NOT_AVAILABLE
+
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s}",
         user_entry.get_session_token_entry().id,
@@ -64,7 +78,10 @@ async def _get(
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
     user_entry.check_token_project_permission(project_id=project_id)
-    return read_project(project_id=project_id, db=db)
+    try:
+        return read_project(project_id=project_id, db=db)
+    except UnknownProjectError:
+        raise HTTPException_UNKNOWN_PROJECT
 
 
 @v1_router.post("/delete")
@@ -75,7 +92,10 @@ async def _delete(
 ):
     user_entry.check_token_project_permission(project_id=project_id)
 
-    project_entry = read_project(project_id=project_id, db=db)
+    try:
+        project_entry = read_project(project_id=project_id, db=db)
+    except UnknownProjectError:
+        raise HTTPException_UNKNOWN_PROJECT
 
     for version_entry in project_entry.version_entries:
         version_rm_mount_and_files(version_entry=version_entry, db=db)

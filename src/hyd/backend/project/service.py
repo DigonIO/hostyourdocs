@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from hyd.backend.project.models import ProjectEntry
-from hyd.backend.util.error import NameError, UnknownEntryError
+from hyd.backend.util.error import NameError, UnknownProjectError
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 
@@ -22,7 +22,7 @@ def read_project(*, project_id: PrimaryKey, db: Session) -> ProjectEntry:
     project_entry = db.query(ProjectEntry).get(project_id)
 
     if project_entry is None:
-        raise UnknownEntryError
+        raise UnknownProjectError
 
     return project_entry
 
@@ -31,7 +31,7 @@ def read_project_by_name(*, project_name: NameStr, db: Session) -> list[ProjectE
     try:
         return db.query(ProjectEntry).filter(ProjectEntry.name == project_name).all()[0]
     except IndexError:
-        raise UnknownEntryError
+        raise UnknownProjectError
 
 
 def read_projects(*, db: Session) -> list[ProjectEntry]:

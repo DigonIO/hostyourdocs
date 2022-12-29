@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from hyd.backend.security import hash_password
 from hyd.backend.user.models import UserEntry
-from hyd.backend.util.error import NameError, UnknownEntryError
+from hyd.backend.util.error import NameError, UnknownUserError
 from hyd.backend.util.models import PrimaryKey
 
 
@@ -25,7 +25,7 @@ def read_user(*, user_id: PrimaryKey, db: Session) -> UserEntry:
     user_entry = db.query(UserEntry).get(user_id)
 
     if user_entry is None:
-        raise UnknownEntryError
+        raise UnknownUserError
 
     return user_entry
 
@@ -34,7 +34,7 @@ def read_users_by_username(*, username: str, db: Session) -> UserEntry:
     try:
         return db.query(UserEntry).filter(UserEntry.username == username).all()[0]
     except IndexError:
-        raise UnknownEntryError
+        raise UnknownUserError
 
 
 def read_users(*, db: Session) -> list[UserEntry]:

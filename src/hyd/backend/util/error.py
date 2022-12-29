@@ -23,8 +23,24 @@ class VerificationError(HydError):
     """Raised if an error occurs while JTW verification."""
 
 
-class UnknownEntryError(HydError):
-    """Raised if a db table could not be found."""
+class UnknownProjectError(HydError):
+    """Raised if an unknown project was requested."""
+
+
+class UnknownTagError(HydError):
+    """Raised for an unknown tag was requested."""
+
+
+class UnknownVersionError(HydError):
+    """Raised for an unknown version was requested."""
+
+
+class UnknownTokenError(HydError):
+    """Raised for an unknown token was requested."""
+
+
+class UnknownUserError(HydError):
+    """Raised for an unknown user was requested."""
 
 
 ####################################################################################################
@@ -45,6 +61,12 @@ HTTPException_NO_PERMISSION = HTTPException(
 
 HTTPException_UNKNOWN_PROJECT = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
-    detail="Unknown project ID!",
+    detail="Unknown project!",
+    headers=HEADERS,
+)
+
+HTTPException_UNKNOWN_VERSION = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Unknown version!",
     headers=HEADERS,
 )

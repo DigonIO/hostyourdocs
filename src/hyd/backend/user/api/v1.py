@@ -14,8 +14,8 @@ from hyd.backend.user.authentication import (
 )
 from hyd.backend.user.models import UserEntry
 from hyd.backend.user.service import read_users_by_username, update_user_pw_by_ref
-from hyd.backend.util.const import REMEMBER_ME_DURATION
-from hyd.backend.util.error import UnknownEntryError
+from hyd.backend.util.const import HEADERS, REMEMBER_ME_DURATION
+from hyd.backend.util.error import UnknownUserError
 from hyd.backend.util.logger import HydLogger
 
 UTC = dt.timezone.utc
@@ -23,10 +23,20 @@ LOGGER = HydLogger("UserAPI")
 
 v1_router = APIRouter(tags=["user"])
 
-credentials_exception = HTTPException(
+####################################################################################################
+#### HTTP Exceptions
+####################################################################################################
+
+HTTPException_CREDENTIALS = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
     headers={"WWW-Authenticate": "Basic"},
+)
+
+HTTPException_PASSWORD_REPETITION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="The new password and the repetition must match each other!",
+    headers=HEADERS,
 )
 
 ####################################################################################################
@@ -43,12 +53,12 @@ async def _login(
     username = form_data.username
     try:
         user_entry: UserEntry = read_users_by_username(username=username, db=db)
-    except UnknownEntryError:
+    except UnknownUserError:
         LOGGER.warning(
             "Unknown username {username: %s}",
             username,
         )
-        raise credentials_exception
+        raise HTTPException_CREDENTIALS
 
     if not verify_password(
         plain_password=form_data.password, hashed_password=user_entry.hashed_password
@@ -58,7 +68,7 @@ async def _login(
             user_entry.id,
             username,
         )
-        raise credentials_exception
+        raise HTTPException_CREDENTIALS
 
     if user_entry.is_disabled:
         LOGGER.warning(
@@ -133,10 +143,10 @@ async def _change_password(
             user_entry.id,
             user_entry.username,
         )
-        raise credentials_exception
+        raise HTTPException_CREDENTIALS
 
     if new_password != new_password_repetition:
-        ...  # TODO Raise exception
+        raise HTTPException_PASSWORD_REPETITION
 
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s}",

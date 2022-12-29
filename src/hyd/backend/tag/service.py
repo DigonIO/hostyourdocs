@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 import hyd.backend.project.service as project_service
 from hyd.backend.tag.models import PrimaryTagEntry, TagEntry
-from hyd.backend.util.error import PrimaryTagError, UnknownEntryError
+from hyd.backend.util.error import PrimaryTagError, UnknownTagError
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 
@@ -26,12 +26,14 @@ def create_tag_entry(project_id: PrimaryKey, tag: NameStr, primary: bool, db: Se
 
 
 def read_tag_entry(project_id: PrimaryKey, tag: NameStr, db: Session) -> TagEntry:
-    tag_entry = db.query(TagEntry).get((project_id, tag))
+    project_entry = project_service.read_project(project_id=project_id, db=db)
 
-    if tag_entry is None:
-        raise UnknownEntryError
+    tag_entries: list[TagEntry] = project_entry.tag_entries
+    for tag_entry in tag_entries:
+        if tag_entry.tag == tag:
+            return tag_entry
 
-    return tag_entry
+    raise UnknownTagError
 
 
 def delete_tag_entry_by_ref(tag_entry: TagEntry, db: Session) -> None:

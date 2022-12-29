@@ -4,7 +4,15 @@ import shutil
 import tarfile
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Security, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    HTTPException,
+    Security,
+    UploadFile,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
@@ -13,6 +21,8 @@ from hyd.backend.security import Scopes
 from hyd.backend.tag.models import TagEntry
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
+from hyd.backend.util.const import HEADERS
+from hyd.backend.util.error import HTTPException_UNKNOWN_VERSION, UnknownVersionError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.models import VersionEntry
@@ -28,6 +38,16 @@ LOGGER = HydLogger("VersionAPI")
 v1_router = APIRouter(tags=["version"])
 
 ####################################################################################################
+#### HTTP Exceptions
+####################################################################################################
+
+HTTPException_EMPTY_FILE = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="The uploaded file has no content!",
+    headers=HEADERS,
+)
+
+####################################################################################################
 #### Scope: VERSION
 ####################################################################################################
 
@@ -41,6 +61,7 @@ async def _upload(
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
 ):
     user_entry.check_token_project_permission(project_id=project_id)
+
     version_entry = _version_upload(file=file, project_id=project_id, version=version, db=db)
 
     project_entry = version_entry.project_entry
@@ -75,7 +96,11 @@ async def _delete(
 ):
     user_entry.check_token_project_permission(project_id=project_id)
 
-    version_entry = read_version(project_id=project_id, version=version, db=db)
+    try:
+        version_entry = read_version(project_id=project_id, version=version, db=db)
+    except UnknownVersionError:
+        raise HTTPException_UNKNOWN_VERSION
+
     version_rm_mount_and_files(version_entry=version_entry, db=db)
 
     project_entry = version_entry.project_entry
@@ -102,7 +127,7 @@ def _version_upload(
 
     file_content = file.file.read()
     if not file_content:
-        raise HTTPException()  # TODO msg
+        raise HTTPException_EMPTY_FILE
 
     version_entry = create_version(
         project_id=project_id,
@@ -112,11 +137,12 @@ def _version_upload(
         db=db,
     )
 
+    # Extract doc files to disc
     file_like_object = io.BytesIO(file_content)
     tar = tarfile.open(fileobj=file_like_object, mode="r:gz")
     target = path_to_version(version_entry.project_id, version_entry.version)
     os.makedirs(target, exist_ok=True)
-    tar.extractall(target)  # Create doc files on disc
+    tar.extractall(target)
 
     _inject_js_loader_to_html(dir_path=target)
 

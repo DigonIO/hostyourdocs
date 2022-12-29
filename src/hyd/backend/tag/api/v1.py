@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 
 import hyd.backend.project.service as project_service
@@ -13,12 +13,38 @@ from hyd.backend.tag.service import (
 )
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
+from hyd.backend.util.const import HEADERS
+from hyd.backend.util.error import (
+    HTTPException_UNKNOWN_PROJECT,
+    HTTPException_UNKNOWN_VERSION,
+    PrimaryTagError,
+    UnknownProjectError,
+    UnknownTagError,
+    UnknownVersionError,
+)
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 LOGGER = HydLogger("TagAPI")
 
 v1_router = APIRouter(tags=["tag"])
+
+####################################################################################################
+#### HTTP Exceptions
+####################################################################################################
+
+HTTPException_PRIMARY_TAG = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Only one primary tag allowed!",
+    headers=HEADERS,
+)
+
+HTTPException_UNKNOWN_TAG = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Unknown tag!",
+    headers=HEADERS,
+)
+
 
 ####################################################################################################
 #### Scope: TAG
@@ -33,7 +59,12 @@ async def _create(
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
-    tag_entry = create_tag_entry(project_id=project_id, tag=tag, primary=primary, db=db)
+    try:
+        tag_entry = create_tag_entry(project_id=project_id, tag=tag, primary=primary, db=db)
+    except UnknownProjectError:
+        raise HTTPException_UNKNOWN_PROJECT
+    except PrimaryTagError:
+        raise HTTPException_PRIMARY_TAG
 
     project_entry = tag_entry.project_entry
     LOGGER.info(
@@ -54,7 +85,11 @@ async def _list(
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
-    project_entry = project_service.read_project(project_id=project_id, db=db)
+    try:
+        project_entry = project_service.read_project(project_id=project_id, db=db)
+    except UnknownProjectError:
+        raise HTTPException_UNKNOWN_PROJECT
+
     return project_entry.tag_entries
 
 
@@ -68,9 +103,20 @@ async def _move(
 ):
     user_entry.check_token_project_permission(project_id=project_id)
 
-    tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
-    _ = version_service.read_version(project_id=project_id, version=version, db=db)  # TODO needed?
+    try:
+        tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
+    except UnknownProjectError:
+        raise HTTPException_UNKNOWN_PROJECT
+    except UnknownTagError:
+        raise HTTPException_UNKNOWN_TAG
 
+    # verify that the target version exists
+    try:
+        _ = version_service.read_version(project_id=project_id, version=version, db=db)
+    except UnknownVersionError:
+        raise HTTPException_UNKNOWN_VERSION
+
+    # rm old mount point if one exists
     if tag_entry.version is not None:
         MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)
 
@@ -102,9 +148,15 @@ async def _delete(
 ):
     user_entry.check_token_project_permission(project_id=project_id)
 
-    tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
+    try:
+        tag_entry = read_tag_entry(project_id=project_id, tag=tag, db=db)
+    except UnknownTagError:
+        raise HTTPException_UNKNOWN_TAG
+
+    # rm old mount point if one exists
     if tag_entry.version is not None:
         MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)
+
     delete_tag_entry_by_ref(tag_entry=tag_entry, db=db)
 
     project_entry = tag_entry.project_entry

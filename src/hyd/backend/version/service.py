@@ -1,7 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from hyd.backend.util.error import NameError, UnknownEntryError
+import hyd.backend.project.service as project_service
+from hyd.backend.util.error import NameError, UnknownVersionError
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.models import VersionEntry
 
@@ -30,12 +31,14 @@ def create_version(
 
 
 def read_version(project_id: PrimaryKey, version: NameStr, db=Session) -> VersionEntry:
-    version_entry = db.query(VersionEntry).get((project_id, version))
+    project_entry = project_service.read_project(project_id=project_id, db=db)
 
-    if version_entry is None:
-        raise UnknownEntryError
+    version_entries: list[VersionEntry] = project_entry.version_entries
+    for tag_entry in version_entries:
+        if tag_entry.version == version:
+            return tag_entry
 
-    return version_entry
+    raise UnknownVersionError
 
 
 def read_versions(project_id: PrimaryKey, db: Session) -> list[VersionEntry]:

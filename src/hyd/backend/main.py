@@ -7,15 +7,18 @@ from hyd.backend.db import DeclarativeMeta, SessionMaker, engine
 from hyd.backend.frontend import footer_router, frontend_router
 from hyd.backend.mount_helper import MountHelper
 from hyd.backend.user.setup import setup_admin_user
+from hyd.backend.util.const import ROOT_PATH
 from hyd.backend.util.logger import HydLogger
 
 LOGGER = HydLogger("App")
 
-DeclarativeMeta.metadata.drop_all(bind=engine)
+# Only useful for local development
+# DeclarativeMeta.metadata.drop_all(bind=engine)
+
 DeclarativeMeta.metadata.create_all(bind=engine)
 
 
-app = FastAPI()
+app = FastAPI(root_path=ROOT_PATH if ROOT_PATH else "")
 # https://fastapi.tiangolo.com/tutorial/cors/
 
 ####################################################################################################

@@ -4,12 +4,16 @@ from jose.jwt import decode, encode
 from passlib.context import CryptContext
 from pydantic import BaseModel, ValidationError
 
-from hyd.backend.util.error import VerificationError
+from hyd.backend.util.const import SECRET_KEY
+from hyd.backend.util.error import HydError, VerificationError
 from hyd.backend.util.models import NameStr, PrimaryKey
 
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-# TODO must not no be in source
-# Add this later as env var
+if SECRET_KEY is None:
+    raise HydError("SECRET_KEY is missing!")
+
+# https://docs.python.org/3/library/secrets.html#how-many-bytes-should-tokens-use
+if len(SECRET_KEY) < 64:
+    raise HydError("SECRET_KEY is to short, use 32 byte or more!")
 
 ALGORITHM = "HS256"
 

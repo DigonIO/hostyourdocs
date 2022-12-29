@@ -114,7 +114,7 @@ async def _logout(
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER]),
     db: Session = Depends(get_db),
 ):
-    token_entry = user_entry.get_session_token_entry()
+    token_entry = user_entry.session_token_entry
     token_service.revoke_token_by_ref(token_entry=token_entry, db=db)
 
     LOGGER.info(
@@ -139,7 +139,7 @@ async def _change_password(
     ):
         LOGGER.info(
             "{token_id: %d, user_id: %d, username: %s}",
-            user_entry.get_session_token_entry().id,
+            user_entry.session_token_entry.id,
             user_entry.id,
             user_entry.username,
         )
@@ -150,7 +150,7 @@ async def _change_password(
 
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s}",
-        user_entry.get_session_token_entry().id,
+        user_entry.session_token_entry.id,
         user_entry.id,
         user_entry.username,
     )

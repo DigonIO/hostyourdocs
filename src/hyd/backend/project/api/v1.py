@@ -53,7 +53,7 @@ async def _create(
 
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s}",
-        user_entry.get_session_token_entry().id,
+        user_entry.session_token_entry.id,
         user_entry.id,
         user_entry.username,
         project_entry.id,
@@ -106,7 +106,7 @@ async def _delete(
 
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s}",
-        user_entry.get_session_token_entry().id,
+        user_entry.session_token_entry.id,
         user_entry.id,
         user_entry.username,
         project_entry.id,

@@ -30,7 +30,8 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
     _session_token_entry: TokenEntry | None = None
     _session_permitted_scopes: list[str] | None = None
 
-    def get_session_token_entry(self) -> TokenEntry:  # TODO raise if None
+    @property
+    def session_token_entry(self) -> TokenEntry:
         return self._session_token_entry
 
     def check_scope_permission(self, *, scope: str) -> bool:  # TODO raise if None

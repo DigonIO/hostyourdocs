@@ -80,7 +80,7 @@ async def _create(
 
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, project_id: %d}",
-        user_entry.get_session_token_entry().id,
+        user_entry.session_token_entry.id,
         user_entry.id,
         user_entry.username,
         project_id if project_id else 0,
@@ -119,7 +119,7 @@ async def _revoke(
 
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, revoked_token_id: %d}",
-        user_entry.get_session_token_entry().id,
+        user_entry.session_token_entry.id,
         user_entry.id,
         user_entry.username,
         token_id,

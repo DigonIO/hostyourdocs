@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <title>{{html_title}} | {{ project.name }}</title>
+</head>
+
+<body>
+    <h1>{{ project.name }}</h1>
+    <h2>Tags</h2>
+    <ul>
+        {% for entry in project.tags %}
+        <li><a href="/{{entry.link}}" {% if not entry.primary %} rel="nofollow" {% endif %}>
+                {{entry.tag}}
+            </a></li>
+        {% endfor %}
+    </ul>
+    <h2>Versions</h2>
+    <ul>
+        {% for entry in project.versions %}
+        <li><a href="/{{entry.link}}" rel="nofollow">{{entry.version}}</a></li>
+        {% endfor %}
+    </ul>
+
+    <footer>
+        <h2>Misc</h2>
+        <ul>
+            {% if name_hosted_by %}
+            <li>Hostet by <a {% if link_hosted_by %} href="{{link_hosted_by}}" {% endif %}>{{name_hosted_by}}</a></li>
+            {% endif %}
+            {% if link_impress %}
+            <li><a href="{{link_impress}}">Impress</a></li>
+            {% endif %}
+            {% if link_privacy %}
+            <li><a href="{{link_privacy}}">Privacy</a></li>
+            {% endif %}
+        </ul>
+    </footer>
+</body>
+
+</html>

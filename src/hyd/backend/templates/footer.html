@@ -1,0 +1,105 @@
+<!-- Injected by HostYourDocs - Start -->
+<style>
+    :root {
+        --hyd-color-bg: #1A1C1E;
+        --hyd-color-border: #303335;
+        --hyd-color-info: #6EBF26;
+        --hyd-color-action: #448aff;
+        --hyd-color-text: #81868d;
+    }
+
+    #hyd-footer {
+        background-color: var(--hyd-color-bg);
+        border: 1px solid var(--hyd-color-border);
+        color: var(--hyd-color-text);
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 1rem;
+        z-index: 100;
+        text-align: center;
+        font-size: medium;
+    }
+
+    #hyd-project-name,
+    #hyd-tag-version {
+        width: 100%;
+    }
+
+    #hyd-project-name {
+        font-size: large;
+    }
+
+    #hyd-tag-version {
+        color: var(--hyd-color-info);
+        margin-bottom: 1rem;
+    }
+
+    #hyd-button {
+        color: var(--hyd-color-action);
+        cursor: pointer;
+    }
+
+    #hyd-impress-privacy {
+        display: flex;
+        justify-content: space-evenly;
+    }
+
+    .hyd-h {
+        color: var(--hyd-color-text);
+        text-transform: uppercase;
+        font-weight: 700;
+        font-size: small;
+        margin-bottom: 0.5rem;
+    }
+
+    .hyd-spacer {
+        width: 100%;
+        border-bottom: 1px solid var(--hyd-color-border);
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .hyd-hidden {
+        display: none;
+    }
+</style>
+
+<div id="hyd-footer">
+    <div class="hyd-h">Project</div>
+    <div id="hyd-project-name"><a href="/simple/{{project_name}}">{{project_name}}</a></div>
+    <div id="hyd-tag-version">{{tag_version_identifier}}</div>
+
+    <div class="hyd-spacer"></div>
+
+    <div id="hyd-button" onclick="hyd_toggle_menu()">menu</div>
+
+    <div id="hyd-menu" class="hyd-hidden">
+        <div class="hyd-h">Navigation</div>
+        <a href="/simple">Simple API</a>
+
+        <div class="hyd-spacer"></div>
+
+        <div class="hyd-h">HostYourDocs</div>
+        <div>Visit the <a>repository</a></div>
+        <div>View the <a>docs</a></div>
+
+        <div class="hyd-spacer"></div>
+
+        <div class="hyd-h">Legal</div>
+        {% if name_hosted_by %}
+        <div id="hyd-host">
+            <a {% if link_hosted_by %} href="{{link_hosted_by}}" {% endif %}>{{name_hosted_by}}</a>
+        </div>
+        {% endif %}
+        <div id="hyd-impress-privacy">
+            {% if link_impress %}
+            <a href="{{link_impress}}">Impress</a>
+            {% endif %}
+            {% if link_privacy %}
+            <div><a href="{{link_privacy}}">Privacy</a></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- Injected by HostYourDocs - End -->

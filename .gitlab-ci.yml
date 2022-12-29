@@ -1,0 +1,49 @@
+stages:
+  - build
+
+variables:
+  KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
+  CONTEXT_PATH: build_image/
+
+####################################################################################################
+### Testing
+####################################################################################################
+
+build_dev:
+  stage: build
+  image:
+    name: ${KANIKO}
+    entrypoint: [""]
+  script:
+    - sh script/build_base.sh
+    - >
+      /kaniko/executor
+      --context ${CONTEXT_PATH}
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+      --verbosity info
+      --force
+      --no-push
+  rules:
+    - if: $CI_COMMIT_TAG == null
+
+####################################################################################################
+### Release
+####################################################################################################
+
+build_tag:
+  stage: build
+  image:
+    name: ${KANIKO}
+    entrypoint: [""]
+  script:
+    # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$CI_DEPENDENCY_PROXY_SERVER\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - sh script/build_base.sh
+    - >
+      /kaniko/executor
+      --context ${CONTEXT_PATH}
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+      --verbosity info
+      --force
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_TAG == null

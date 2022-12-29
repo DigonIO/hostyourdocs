@@ -1,0 +1,44 @@
+version: '3'
+
+# Replace <TAG>, <PORT> and <PATH> for your setup!
+
+services:
+  hyd_backend:
+    image: registry.gitlab.com/digonio/hostyourdocs:<TAG>
+    restart: always
+    volumes:
+      - data_backend:/data
+    ports:
+      - <PORT>:8000
+    environment:
+      - MARIADB_ADDRESS=hyd_db
+    env_file:
+      - envfiles/backend.env
+      - envfiles/shared.env
+    depends_on:
+      - hyd_db
+  hyd_db:
+    image: mariadb:<TAG>
+    restart: always
+    volumes:
+      - data_db:/var/lib/mysql
+    environment:
+      - MARIADB_DATABASE=hyd_db
+      - MARIADB_USER=hyd_user
+    env_file:
+      - envfiles/db.env
+      - envfiles/shared.env
+
+volumes:
+  data_backend:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "<PATH>/hyd/data_backend"
+  data_db:
+    driver: local
+    driver_opts:
+      type: "none"
+      o: "bind"
+      device: "<PATH>/hyd/data_db"

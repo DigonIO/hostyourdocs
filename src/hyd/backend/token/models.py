@@ -1,0 +1,108 @@
+import datetime as dt
+
+from pydantic import BaseModel
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, Session, relationship
+
+from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.backend.util.const import (
+    LOGIN_DURATION_AFTER_LAST_REQUEST,
+    MAX_LENGTH_TOKEN_SCOPE,
+)
+from hyd.backend.util.models import PrimaryKey, TimeStampMixin
+
+UTC = dt.timezone.utc
+
+
+class TokenMetaSchema(BaseModel):
+    token_id: PrimaryKey
+    user_id: PrimaryKey
+    expires_on: dt.datetime | None
+    is_login_token: bool
+    is_expired: bool
+    revoked_at: dt.datetime | None
+    scopes: list[str]
+    project_id: PrimaryKey | None
+
+
+class TokenSchema(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenEntry(DeclarativeMeta, TimeStampMixin):
+    __tablename__ = "token_table"
+    __table_args__ = {"extend_existing": EXTEND_EXISTING}
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user_table.id"))
+    is_login_token = Column(Boolean)
+    is_expired = Column(Boolean, default=False)
+    project_id: Mapped[PrimaryKey] = Column(Integer, ForeignKey("project_table.id"), nullable=True)
+    _expires_on: Mapped[dt.datetime] = Column(DateTime, nullable=True)
+    _last_request = Column(DateTime, default=dt.datetime.utcnow)
+    _revoked_at = Column(DateTime, nullable=True, default=None)
+
+    scope_entries: Mapped[list["TokenScopeEntry"]] = relationship(
+        "TokenScopeEntry", back_populates="token_entry", cascade="all,delete"
+    )
+    user_entry: Mapped["UserEntry"] = relationship("UserEntry", back_populates="token_entries")
+
+    @property
+    def expires_on(self) -> dt.datetime | None:
+        return None if self._expires_on is None else self._expires_on.replace(tzinfo=UTC)
+
+    @expires_on.setter
+    def expires_on(self, val: dt.datetime) -> None:
+        self._expires_on = val
+
+    @property
+    def last_request(self) -> dt.datetime:
+        return self._last_request.replace(tzinfo=UTC)
+
+    @last_request.setter
+    def last_request(self, val: dt.datetime) -> None:
+        self._last_request = val
+
+    @property
+    def revoked_at(self) -> dt.datetime | None:
+        return None if self._revoked_at is None else self._revoked_at.replace(tzinfo=UTC)
+
+    @revoked_at.setter
+    def revoked_at(self, val: dt.datetime) -> None:
+        self._revoked_at = val
+
+    def check_expiration(self, *, db: Session) -> bool:
+        if self.is_expired:
+            return True
+
+        if self.is_login_token:
+            # graciously expire token after expiration datetime is reached
+            # and the last request is older than a given threshold
+
+            if dt.datetime.now(tz=UTC) < self.expires_on:
+                return False
+            if LOGIN_DURATION_AFTER_LAST_REQUEST < (dt.datetime.now(tz=UTC) - self.last_request):
+                self.is_expired = True
+                db.commit()
+                return True
+        else:
+            # expire token after the given datetime is reached
+            if self.expires_on is None:
+                return False
+
+            if self.expires_on <= dt.datetime.now(tz=UTC):
+                self.is_expired = True
+                db.commit()
+                return True
+
+        return False
+
+
+class TokenScopeEntry(DeclarativeMeta):
+    __tablename__ = "scope_table"
+    __table_args__ = {"extend_existing": EXTEND_EXISTING}
+    id = Column(Integer, primary_key=True)
+    token_id = Column(Integer, ForeignKey("token_table.id"))
+    scope = Column(String(length=MAX_LENGTH_TOKEN_SCOPE))
+
+    token_entry = relationship("TokenEntry", back_populates="scope_entries")

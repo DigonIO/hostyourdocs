@@ -18,5 +18,15 @@ setup(
     extras_require={
         "dev": "pre-commit==2.20.0",
     },
+    packages=["hyd"],
     package_dir={"": "src"},
+    package_data={
+        "hyd": [
+            "py.typed",
+            "backend/template/footer.html",
+            "backend/template/project.html",
+            "backend/template/simple.html",
+            "backend/template/loader.js",
+        ]
+    },
 )

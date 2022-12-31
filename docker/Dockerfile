@@ -23,5 +23,5 @@ COPY LICENSE /app
 RUN pip install /app
 
 USER app
-EXPOSE 8080
+EXPOSE 8000
 CMD ["python", "-m", "hyd.backend"]

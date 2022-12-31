@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="hyd",
-    python_requires=">=3.10.9",
+    python_requires=">=3.10",
     install_requires=[
         "uvicorn==0.18.2",
         "fastapi==0.88.0",
@@ -18,15 +18,14 @@ setup(
     extras_require={
         "dev": "pre-commit==2.20.0",
     },
-    packages=["hyd"],
     package_dir={"": "src"},
     package_data={
         "hyd": [
             "py.typed",
-            "backend/template/footer.html",
-            "backend/template/project.html",
-            "backend/template/simple.html",
-            "backend/template/loader.js",
+            "backend/templates/footer.html",
+            "backend/templates/project.html",
+            "backend/templates/simple.html",
+            "backend/templates/loader.js",
         ]
     },
 )

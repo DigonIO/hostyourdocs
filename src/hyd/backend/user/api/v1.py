@@ -13,7 +13,14 @@ from hyd.backend.user.authentication import (
     HTTPException_USER_DISABLED,
     authenticate_user,
 )
-from hyd.backend.user.models import UserEntry
+from hyd.backend.user.models import (
+    API_V1_CHANGE_PASSWORD__PATCH,
+    API_V1_GREET__GET,
+    API_V1_LOGIN__POST,
+    API_V1_LOGOUT__PATCH,
+    UserEntry,
+    UserResponseSchema,
+)
 from hyd.backend.user.service import read_users_by_username, update_user_pw_by_ref
 from hyd.backend.util.const import HEADERS, REMEMBER_ME_DURATION
 from hyd.backend.util.logger import HydLogger
@@ -40,11 +47,11 @@ HTTPException_PASSWORD_REPETITION = HTTPException(
 )
 
 ####################################################################################################
-#### No login required
+#### Scope: No authentication required
 ####################################################################################################
 
 
-@v1_router.post("/login", response_model=TokenSchema)
+@v1_router.post("/login", responses=API_V1_LOGIN__POST)
 async def _login(
     remember_me: bool = False,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -109,7 +116,7 @@ async def _login(
 ####################################################################################################
 
 
-@v1_router.post("/logout")
+@v1_router.patch("/logout", responses=API_V1_LOGOUT__PATCH)
 async def _logout(
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER]),
     db: Session = Depends(get_db),
@@ -123,10 +130,10 @@ async def _logout(
         user_entry.id,
         user_entry.username,
     )
-    return f"Logout {user_entry.username} :("  # TODO Refactor result
+    return f"Logout {user_entry.username} :("
 
 
-@v1_router.post("/change_password")
+@v1_router.patch("/change_password", responses=API_V1_CHANGE_PASSWORD__PATCH)
 async def _change_password(
     current_password: str,
     new_password: str,
@@ -156,7 +163,24 @@ async def _change_password(
     )
     update_user_pw_by_ref(user_entry=user_entry, new_password=new_password, db=db)
 
+    return f"Password changed!"
 
-@v1_router.get("/greet")
+
+@v1_router.get("/greet", responses=API_V1_GREET__GET)
 async def _greet(user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.USER])):
-    return f"Hello {user_entry.username} :)"  # TODO Refactor result
+    return f"Hello {user_entry.username} :)"
+
+
+####################################################################################################
+#### Util
+####################################################################################################
+
+# NOTE currently unused
+def _user_entry_to_response_schema(user_entry: UserEntry) -> UserResponseSchema:
+    return UserResponseSchema(
+        id=user_entry.id,
+        username=user_entry.username,
+        is_admin=user_entry.is_admin,
+        is_disabled=user_entry.is_disabled,
+        created_at=user_entry.created_at,
+    )

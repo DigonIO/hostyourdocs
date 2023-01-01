@@ -101,7 +101,7 @@ async def _login(
         user_entry.id,
         username,
     )
-    return TokenSchema(access_token=access_token, token_type="bearer")
+    return TokenSchema(access_token=access_token)
 
 
 ####################################################################################################

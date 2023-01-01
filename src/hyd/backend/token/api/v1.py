@@ -11,7 +11,14 @@ from hyd.backend.exc import (
 )
 from hyd.backend.project import service as project_services
 from hyd.backend.security import Scopes, create_jwt
-from hyd.backend.token.models import TokenEntry, TokenMetaSchema, TokenSchema
+from hyd.backend.token.models import (
+    API_V1_CREATE__POST,
+    API_V1_LIST__GET,
+    API_V1_REVOKE__PATCH,
+    TokenEntry,
+    TokenResponseSchema,
+    TokenSchema,
+)
 from hyd.backend.token.service import create_token, read_token, revoke_token_by_ref
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
@@ -40,12 +47,18 @@ HTTPException_UNKNOWN_TOKEN = HTTPException(
     headers=HEADERS,
 )
 
+HTTPException_TOKEN_ALREADY_REVOKED = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="Token has already been revoked!",
+    headers=HEADERS,
+)
+
 ####################################################################################################
 #### Scope: TOKEN
 ####################################################################################################
 
 
-@v1_router.post("/create")
+@v1_router.post("/create", responses=API_V1_CREATE__POST)
 async def _create(
     project_id: PrimaryKey,
     expires_on: dt.datetime | dt.timedelta | None = None,
@@ -85,26 +98,26 @@ async def _create(
         user_entry.username,
         project_id if project_id else 0,
     )
-    return TokenSchema(access_token=access_token, token_type="bearer")
+    return TokenSchema(access_token=access_token) | _token_entry_to_response_schema(token_entry)
 
 
-@v1_router.post("/list")
+@v1_router.post("/list", responses=API_V1_LIST__GET)
 async def _list(
     include_expired_revoked: bool = False,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
 ):
     if include_expired_revoked:
-        return [token_entry_to_meta_schema(entry) for entry in user_entry.token_entries]
+        return [_token_entry_to_response_schema(entry) for entry in user_entry.token_entries]
     else:
         return [
-            token_entry_to_meta_schema(entry)
+            _token_entry_to_response_schema(entry)
             for entry in user_entry.token_entries
             if (not entry._revoked_at and not entry.check_expiration(db=db))
         ]
 
 
-@v1_router.post("/revoke")
+@v1_router.patch("/revoke", responses=API_V1_REVOKE__PATCH)
 async def _revoke(
     token_id: PrimaryKey,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
@@ -115,6 +128,9 @@ async def _revoke(
     except UnknownTokenError:
         raise HTTPException_UNKNOWN_TOKEN
 
+    if token_entry.revoked_at:
+        raise HTTPException_TOKEN_ALREADY_REVOKED
+
     revoke_token_by_ref(token_entry=token_entry, db=db)
 
     LOGGER.info(
@@ -124,7 +140,7 @@ async def _revoke(
         user_entry.username,
         token_id,
     )
-    return token_entry_to_meta_schema(token_entry)
+    return _token_entry_to_response_schema(token_entry)
 
 
 ####################################################################################################
@@ -132,10 +148,11 @@ async def _revoke(
 ####################################################################################################
 
 
-def token_entry_to_meta_schema(token_entry: TokenEntry) -> TokenMetaSchema:
-    return TokenMetaSchema(
+def _token_entry_to_response_schema(token_entry: TokenEntry) -> TokenResponseSchema:
+    return TokenResponseSchema(
         token_id=token_entry.id,
         user_id=token_entry.user_id,
+        created_at=token_entry.created_at,
         is_login_token=token_entry.is_login_token,
         is_expired=token_entry.is_expired,
         revoked_at=token_entry._revoked_at,

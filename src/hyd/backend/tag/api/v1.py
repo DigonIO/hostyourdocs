@@ -186,7 +186,6 @@ async def _delete(
 
 
 def _tag_entry_to_response_schema(tag_entry: TagEntry) -> TagResponseSchema:
-
     return TagResponseSchema(
         project_id=tag_entry.project_id,
         tag=tag_entry.tag,

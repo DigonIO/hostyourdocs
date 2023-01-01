@@ -1,10 +1,24 @@
+import datetime as dt
+from typing import TypedDict
+
+from fastapi import status
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, relationship
 
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.project.models import ProjectEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
-from hyd.backend.util.models import NameStr, PrimaryKey, TimeStampMixin
+from hyd.backend.util.models import (
+    BASE_API_RESPONSE_SCHEMA,
+    DETAIL_STR,
+    NameStr,
+    PrimaryKey,
+    TimeStampMixin,
+)
+
+####################################################################################################
+#### SQLAlchemy table definitions
+####################################################################################################
 
 
 class VersionEntry(DeclarativeMeta, TimeStampMixin):
@@ -26,3 +40,40 @@ class VersionEntry(DeclarativeMeta, TimeStampMixin):
     tag_entries: Mapped[list["TagEntry"]] = relationship(
         "TagEntry", back_populates="version_entry", viewonly=True
     )
+
+
+####################################################################################################
+#### Response schema
+####################################################################################################
+
+
+class VersionResponseSchema(TypedDict):
+    project_id: PrimaryKey
+    version: NameStr
+    created_at: dt.datetime
+    tags: list[NameStr]
+
+
+####################################################################################################
+#### OpenAPI definitions
+####################################################################################################
+
+
+API_V1_UPLOAD__POST = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": VersionResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}
+
+
+API_V1_LIST__GET = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": list[VersionResponseSchema]},
+}
+
+
+API_V1_DELETE__DELETE = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": VersionResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}

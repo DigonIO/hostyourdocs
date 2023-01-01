@@ -25,7 +25,13 @@ from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
-from hyd.backend.version.models import VersionEntry
+from hyd.backend.version.models import (
+    API_V1_DELETE__DELETE,
+    API_V1_LIST__GET,
+    API_V1_UPLOAD__POST,
+    VersionEntry,
+    VersionResponseSchema,
+)
 from hyd.backend.version.service import (
     create_version,
     delete_version_by_ref,
@@ -52,7 +58,7 @@ HTTPException_EMPTY_FILE = HTTPException(
 ####################################################################################################
 
 
-@v1_router.post("/upload")
+@v1_router.post("/upload", responses=API_V1_UPLOAD__POST)
 async def _upload(
     file: UploadFile,
     project_id: PrimaryKey = Form(...),
@@ -74,20 +80,20 @@ async def _upload(
         project_entry.name,
         version,
     )
-    return version_entry
+    return _version_entry_to_response_schema(version_entry)
 
 
-@v1_router.get("/list")
+@v1_router.get("/list", responses=API_V1_LIST__GET)
 async def _list(
     project_id: PrimaryKey,
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.VERSION]),
 ):
     version_entries = read_versions(project_id=project_id, db=db)
-    return version_entries
+    return [_version_entry_to_response_schema(entry) for entry in version_entries]
 
 
-@v1_router.post("/delete")
+@v1_router.delete("/delete", responses=API_V1_DELETE__DELETE)
 async def _delete(
     project_id: PrimaryKey,
     version: NameStr,
@@ -113,12 +119,43 @@ async def _delete(
         project_entry.name,
         version,
     )
-    return version_entry
+    return _version_entry_to_response_schema(version_entry)
 
 
 ####################################################################################################
 #### Util
 ####################################################################################################
+
+
+def version_rm_mount_and_files(*, version_entry: VersionEntry, db: Session) -> None:
+    id = version_entry.project_id
+    name = version_entry.project_entry.name
+    version = version_entry.version
+
+    MountHelper.unmount_version(project_name=name, version=version)
+
+    tag_entries: list[TagEntry] = version_entry.tag_entries
+    for entry in tag_entries:
+        if entry.version:
+            MountHelper.unmount_tag(project_name=name, tag=entry.tag)
+            entry.version = None
+    db.commit()
+
+    delete_version_by_ref(version_entry=version_entry, db=db)
+
+    target = path_to_version(id, version)
+    shutil.rmtree(target)  # Delete doc files from disc
+
+
+def _version_entry_to_response_schema(version_entry: VersionEntry) -> VersionResponseSchema:
+    tag_entries: list[TagEntry] = version_entry.tag_entries
+
+    return VersionResponseSchema(
+        project_id=version_entry.project_id,
+        version=version_entry.version,
+        created_at=version_entry.created_at,
+        tags=[t_entry.tag for t_entry in tag_entries],
+    )
 
 
 def _version_upload(
@@ -173,23 +210,3 @@ def _recursiv_html_file_search(*, dir_path: Path, html_files: list[Path]) -> Non
             _recursiv_html_file_search(dir_path=entry, html_files=html_files)
         elif entry.is_file() and entry.suffix == ".html":
             html_files.append(entry)
-
-
-def version_rm_mount_and_files(*, version_entry: VersionEntry, db: Session) -> None:
-    id = version_entry.project_id
-    name = version_entry.project_entry.name
-    version = version_entry.version
-
-    MountHelper.unmount_version(project_name=name, version=version)
-
-    tag_entries: list[TagEntry] = version_entry.tag_entries
-    for entry in tag_entries:
-        if entry.version:
-            MountHelper.unmount_tag(project_name=name, tag=entry.tag)
-            entry.version = None
-    db.commit()
-
-    delete_version_by_ref(version_entry=version_entry, db=db)
-
-    target = path_to_version(id, version)
-    shutil.rmtree(target)  # Delete doc files from disc

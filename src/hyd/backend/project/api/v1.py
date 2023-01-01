@@ -11,6 +11,14 @@ from hyd.backend.exc import (
     NameStrError,
     UnknownProjectError,
 )
+from hyd.backend.project.models import (
+    API_V1_CREATE__POST,
+    API_V1_DELETE__DELETE,
+    API_V1_GET__GET,
+    API_V1_LIST__GET,
+    ProjectEntry,
+    ProjectResponseSchema,
+)
 from hyd.backend.project.service import (
     create_project,
     delete_project_by_ref,
@@ -18,12 +26,14 @@ from hyd.backend.project.service import (
     read_projects,
 )
 from hyd.backend.security import Scopes
+from hyd.backend.tag.models import TagEntry
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS, PATH_PROJECTS
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.api.v1 import version_rm_mount_and_files
+from hyd.backend.version.models import VersionEntry
 
 LOGGER = HydLogger("ProjectAPI")
 
@@ -44,7 +54,7 @@ HTTPException_PROJECT_NAME_NOT_AVAILABLE = HTTPException(
 ####################################################################################################
 
 
-@v1_router.post("/create")
+@v1_router.post("/create", responses=API_V1_CREATE__POST)
 async def _create(
     name: NameStr,
     db: Session = Depends(get_db),
@@ -63,32 +73,35 @@ async def _create(
         project_entry.id,
         name,
     )
-    return project_entry
+    return _project_entry_to_response_schema(project_entry)
 
 
-@v1_router.get("/list")
+@v1_router.get("/list", responses=API_V1_LIST__GET)
 async def _list(
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
     project_entries = read_projects(db=db)
-    return project_entries
+    return [_project_entry_to_response_schema(project_entry) for project_entry in project_entries]
 
 
-@v1_router.get("/get")
+@v1_router.get("/get", responses=API_V1_GET__GET)
 async def _get(
     project_id: Union[int, str],
     db: Session = Depends(get_db),
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.PROJECT]),
 ):
     user_entry.check_token_project_permission(project_id=project_id)
+
     try:
-        return read_project(project_id=project_id, db=db)
+        project_entry = read_project(project_id=project_id, db=db)
     except UnknownProjectError:
         raise HTTPException_UNKNOWN_PROJECT
 
+    return _project_entry_to_response_schema(project_entry)
 
-@v1_router.post("/delete")
+
+@v1_router.delete("/delete", responses=API_V1_DELETE__DELETE)
 async def _delete(
     project_id: PrimaryKey,
     db: Session = Depends(get_db),
@@ -116,7 +129,7 @@ async def _delete(
         project_entry.id,
         project_entry.name,
     )
-    return project_entry
+    return _project_entry_to_response_schema(project_entry)
 
 
 ####################################################################################################
@@ -126,3 +139,16 @@ async def _delete(
 
 def _path_to_project(project_id: PrimaryKey) -> Path:
     return PATH_PROJECTS / str(project_id)
+
+
+def _project_entry_to_response_schema(project_entry: ProjectEntry) -> ProjectResponseSchema:
+    version_entries: list[VersionEntry] = project_entry.version_entries
+    tag_entries: list[TagEntry] = project_entry.version_entries
+
+    return ProjectResponseSchema(
+        id=project_entry.id,
+        name=project_entry.name,
+        created_at=project_entry.created_at,
+        versions=[version_entry.version for version_entry in version_entries],
+        tags=[tag_entry.tag for tag_entry in tag_entries],
+    )

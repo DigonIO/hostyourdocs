@@ -3,8 +3,14 @@ import datetime as dt
 from fastapi import status
 from pydantic.types import conint, constr
 from sqlalchemy import Column, DateTime, event
+from sqlalchemy.orm import Mapped
 
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
+
+####################################################################################################
+#### pydantic types
+####################################################################################################
+
 
 PrimaryKey = conint(gt=0, lt=2147483647)
 NameStr = constr(
@@ -14,12 +20,16 @@ NameStr = constr(
     max_length=MAX_LENGTH_STR_ID,
 )
 
+####################################################################################################
+#### SQLAlchemy table mixins
+####################################################################################################
+
 
 class TimeStampMixin(object):
     """Timestamping mixin"""
 
-    created_at = Column(DateTime, default=dt.datetime.utcnow)
-    updated_at = Column(DateTime, default=None)
+    created_at: Mapped[dt.datetime] = Column(DateTime, default=dt.datetime.utcnow)
+    updated_at: Mapped[dt.datetime | None] = Column(DateTime, default=None)
     # NOTE maybe this a better solution https://stackoverflow.com/questions/3923910/sqlalchemy-move-mixin-columns-to-end
     created_at._creation_order = 9998
     updated_at._creation_order = 9998
@@ -33,15 +43,16 @@ class TimeStampMixin(object):
         event.listen(cls, "before_update", cls._updated_at)
 
 
-DEFAULT_STR = {"content": {"application/json": {"example": "string"}}}
-DEFAULT_MSG = {"content": {"application/json": {"example": {"msg": "string"}}}}
-# see https://fastapi.tiangolo.com/advanced/additional-responses/
-DEFAULT_PDF = {"content": {"application/pdf": {}}}
-DEFAULT_MSG_ID = {"content": {"application/json": {"example": {"msg": "string", "id": 1}}}}
-DEFAULT_MSG_IDS = {"content": {"application/json": {"example": {"msg": "string", "ids": [1]}}}}
+####################################################################################################
+#### OpenAPI definitions
+####################################################################################################
+
+
+DETAIL_STR = {"content": {"application/json": {"example": {"detail": "string"}}}}
 
 BASE_API_RESPONSE_SCHEMA = {
     status.HTTP_500_INTERNAL_SERVER_ERROR: {
         "content": {"application/json": {"example": "Internal Server Error"}},
     },
+    status.HTTP_401_UNAUTHORIZED: DETAIL_STR,
 }

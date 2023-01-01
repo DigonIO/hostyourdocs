@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
 import hyd.backend.project.service as project_service
+from hyd.backend.exc import PrimaryTagError, UnknownTagError
 from hyd.backend.tag.models import PrimaryTagEntry, TagEntry
-from hyd.backend.util.error import PrimaryTagError, UnknownTagError
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 

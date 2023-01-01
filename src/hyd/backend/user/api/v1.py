@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 import hyd.backend.token.service as token_service
 from hyd.backend.db import get_db
+from hyd.backend.exc import UnknownUserError
 from hyd.backend.security import SCOPES, Scopes, create_jwt, verify_password
 from hyd.backend.token.models import TokenSchema
 from hyd.backend.user.authentication import (
@@ -15,7 +16,6 @@ from hyd.backend.user.authentication import (
 from hyd.backend.user.models import UserEntry
 from hyd.backend.user.service import read_users_by_username, update_user_pw_by_ref
 from hyd.backend.util.const import HEADERS, REMEMBER_ME_DURATION
-from hyd.backend.util.error import UnknownUserError
 from hyd.backend.util.logger import HydLogger
 
 UTC = dt.timezone.utc

@@ -6,6 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
+from hyd.backend.exc import (
+    HTTPException_UNKNOWN_PROJECT,
+    NameStrError,
+    UnknownProjectError,
+)
 from hyd.backend.project.service import (
     create_project,
     delete_project_by_ref,
@@ -16,11 +21,6 @@ from hyd.backend.security import Scopes
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS, PATH_PROJECTS
-from hyd.backend.util.error import (
-    HTTPException_UNKNOWN_PROJECT,
-    NameStrError,
-    UnknownProjectError,
-)
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.api.v1 import version_rm_mount_and_files

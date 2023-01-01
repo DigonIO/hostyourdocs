@@ -4,6 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
+from hyd.backend.exc import (
+    HTTPException_UNKNOWN_PROJECT,
+    UnknownProjectError,
+    UnknownTokenError,
+)
 from hyd.backend.project import service as project_services
 from hyd.backend.security import Scopes, create_jwt
 from hyd.backend.token.models import TokenEntry, TokenMetaSchema, TokenSchema
@@ -11,11 +16,6 @@ from hyd.backend.token.service import create_token, read_token, revoke_token_by_
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS
-from hyd.backend.util.error import (
-    HTTPException_UNKNOWN_PROJECT,
-    UnknownProjectError,
-    UnknownTokenError,
-)
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 

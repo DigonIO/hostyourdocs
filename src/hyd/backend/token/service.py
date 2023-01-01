@@ -3,8 +3,8 @@ import datetime as dt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from hyd.backend.exc import UnknownTokenError
 from hyd.backend.token.models import TokenEntry, TokenScopeEntry
-from hyd.backend.util.error import UnknownTokenError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import PrimaryKey
 

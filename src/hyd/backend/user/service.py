@@ -1,9 +1,9 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from hyd.backend.exc import NameStrError, UnknownUserError
 from hyd.backend.security import hash_password
 from hyd.backend.user.models import UserEntry
-from hyd.backend.util.error import NameStrError, UnknownUserError
 from hyd.backend.util.models import PrimaryKey
 
 

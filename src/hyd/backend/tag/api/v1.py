@@ -4,6 +4,14 @@ from sqlalchemy.orm import Session
 import hyd.backend.project.service as project_service
 import hyd.backend.version.service as version_service
 from hyd.backend.db import get_db
+from hyd.backend.exc import (
+    HTTPException_UNKNOWN_PROJECT,
+    HTTPException_UNKNOWN_VERSION,
+    PrimaryTagError,
+    UnknownProjectError,
+    UnknownTagError,
+    UnknownVersionError,
+)
 from hyd.backend.mount_helper import MountHelper
 from hyd.backend.security import Scopes
 from hyd.backend.tag.service import (
@@ -14,14 +22,6 @@ from hyd.backend.tag.service import (
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS
-from hyd.backend.util.error import (
-    HTTPException_UNKNOWN_PROJECT,
-    HTTPException_UNKNOWN_VERSION,
-    PrimaryTagError,
-    UnknownProjectError,
-    UnknownTagError,
-    UnknownVersionError,
-)
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 

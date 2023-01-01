@@ -1,8 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from hyd.backend.exc import NameStrError, UnknownProjectError
 from hyd.backend.project.models import ProjectEntry
-from hyd.backend.util.error import NameStrError, UnknownProjectError
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 

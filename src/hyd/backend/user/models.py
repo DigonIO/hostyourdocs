@@ -2,9 +2,9 @@ from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, relationship
 
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
+from hyd.backend.exc import HTTPException_NO_PERMISSION
 from hyd.backend.token.models import TokenEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
-from hyd.backend.util.error import HTTPException_NO_PERMISSION
 from hyd.backend.util.models import PrimaryKey, TimeStampMixin
 
 

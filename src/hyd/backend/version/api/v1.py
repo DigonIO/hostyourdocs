@@ -16,13 +16,13 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from hyd.backend.db import get_db
+from hyd.backend.exc import HTTPException_UNKNOWN_VERSION, UnknownVersionError
 from hyd.backend.mount_helper import MountHelper, path_to_version
 from hyd.backend.security import Scopes
 from hyd.backend.tag.models import TagEntry
 from hyd.backend.user.authentication import authenticate_user
 from hyd.backend.user.models import UserEntry
 from hyd.backend.util.const import HEADERS
-from hyd.backend.util.error import HTTPException_UNKNOWN_VERSION, UnknownVersionError
 from hyd.backend.util.logger import HydLogger
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.models import VersionEntry

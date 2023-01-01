@@ -14,6 +14,14 @@ from hyd.backend.exc import (
 )
 from hyd.backend.mount_helper import MountHelper
 from hyd.backend.security import Scopes
+from hyd.backend.tag.models import (
+    API_V1_CREATE__POST,
+    API_V1_DELETE__DELETE,
+    API_V1_LIST__GET,
+    API_V1_MOVE__PATCH,
+    TagEntry,
+    TagResponseSchema,
+)
 from hyd.backend.tag.service import (
     create_tag_entry,
     delete_tag_entry_by_ref,
@@ -51,7 +59,7 @@ HTTPException_UNKNOWN_TAG = HTTPException(
 ####################################################################################################
 
 
-@v1_router.post("/create")
+@v1_router.post("/create", responses=API_V1_CREATE__POST)
 async def _create(
     project_id: PrimaryKey,
     tag: NameStr,
@@ -76,10 +84,10 @@ async def _create(
         project_entry.name,
         tag,
     )
-    return tag_entry
+    return _tag_entry_to_response_schema(tag_entry)
 
 
-@v1_router.get("/list")
+@v1_router.get("/list", responses=API_V1_LIST__GET)
 async def _list(
     project_id: PrimaryKey,
     db: Session = Depends(get_db),
@@ -90,10 +98,10 @@ async def _list(
     except UnknownProjectError:
         raise HTTPException_UNKNOWN_PROJECT
 
-    return project_entry.tag_entries
+    return [_tag_entry_to_response_schema(tag_entry) for tag_entry in project_entry.tag_entries]
 
 
-@v1_router.post("/move")
+@v1_router.patch("/move", responses=API_V1_MOVE__PATCH)
 async def _move(
     project_id: PrimaryKey,
     tag: NameStr,
@@ -136,10 +144,10 @@ async def _move(
         tag,
         version,
     )
-    return tag_entry
+    return _tag_entry_to_response_schema(tag_entry)
 
 
-@v1_router.post("/delete")
+@v1_router.delete("/delete", responses=API_V1_DELETE__DELETE)
 async def _delete(
     project_id: PrimaryKey,
     tag: NameStr,
@@ -169,4 +177,21 @@ async def _delete(
         project_entry.name,
         tag,
     )
-    return tag_entry
+    return _tag_entry_to_response_schema(tag_entry)
+
+
+####################################################################################################
+#### Util
+####################################################################################################
+
+
+def _tag_entry_to_response_schema(tag_entry: TagEntry) -> TagResponseSchema:
+
+    return TagResponseSchema(
+        project_id=tag_entry.project_id,
+        tag=tag_entry.tag,
+        created_at=tag_entry.created_at,
+        updated_at=tag_entry.updated_at,
+        version=tag_entry.version,
+        primary=tag_entry.primary,
+    )

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6
+
+### Fix
+
++ Include previously missing root_path in TemplateResponse.
++ Working footer with reverse proxy.
+
 ## 0.1.5
 
 ### Feature

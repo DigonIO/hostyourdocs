@@ -119,7 +119,10 @@ async def _delete(
         project_entry.name,
         version,
     )
-    return _version_entry_to_response_schema(version_entry)
+
+    response = _version_entry_to_response_schema(version_entry)
+    delete_version_by_ref(version_entry=version_entry, db=db)
+    return response
 
 
 ####################################################################################################
@@ -140,8 +143,6 @@ def version_rm_mount_and_files(*, version_entry: VersionEntry, db: Session) -> N
             MountHelper.unmount_tag(project_name=name, tag=entry.tag)
             entry.version = None
     db.commit()
-
-    delete_version_by_ref(version_entry=version_entry, db=db)
 
     target = path_to_version(id, version)
     shutil.rmtree(target)  # Delete doc files from disc

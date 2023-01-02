@@ -117,8 +117,6 @@ async def _delete(
     for version_entry in project_entry.version_entries:
         version_rm_mount_and_files(version_entry=version_entry, db=db)
 
-    delete_project_by_ref(project_entry=project_entry, db=db)
-
     shutil.rmtree(_path_to_project(project_id))
 
     LOGGER.info(
@@ -129,7 +127,10 @@ async def _delete(
         project_entry.id,
         project_entry.name,
     )
-    return _project_entry_to_response_schema(project_entry)
+
+    response = _project_entry_to_response_schema(project_entry)
+    delete_project_by_ref(project_entry=project_entry, db=db)
+    return response
 
 
 ####################################################################################################

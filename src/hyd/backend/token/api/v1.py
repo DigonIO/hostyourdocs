@@ -65,8 +65,7 @@ async def _create(
     expires_on: dt.datetime | dt.timedelta | None = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
-) -> FullTokenResponseSchema:  # poor mypy
-
+) -> FullTokenResponseSchema:
     if isinstance(expires_on, dt.datetime):
         if expires_on.tzinfo is None:
             raise HTTPException_TIMEZONE_AWARE
@@ -101,7 +100,17 @@ async def _create(
         user_entry.username,
         project_id if project_id else 0,
     )
-    return TokenSchema(access_token=access_token) | _token_entry_to_response_schema(token_entry)
+    return FullTokenResponseSchema(
+        access_token=access_token,
+        token_id=token_entry.id,
+        user_id=token_entry.user_id,
+        created_at=token_entry.created_at,
+        is_login_token=token_entry.is_login_token,
+        is_expired=token_entry.is_expired,
+        revoked_at=token_entry._revoked_at,
+        scopes=[entry.scope for entry in token_entry.scope_entries],
+        project_id=token_entry.project_id,
+    )
 
 
 @v1_router.post("/list", responses=API_V1_LIST__GET)

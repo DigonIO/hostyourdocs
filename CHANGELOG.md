@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4
+
+### Fix
+
++ Fix crashing thru unknown project ID while uploading a new version.
++ Fix project, tag, version deletion crash.
+
 ## 0.1.3
 
 ### Feature

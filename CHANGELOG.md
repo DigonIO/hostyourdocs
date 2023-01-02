@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5
+
+### Feature
+
++ Inject the footer loader script location into every html file at service start.
+
 ## 0.1.4
 
 ### Fix

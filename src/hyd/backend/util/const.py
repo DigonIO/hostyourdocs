@@ -25,6 +25,8 @@ LINK_PRIVACY: str | None = os.getenv("LINK_PRIVACY")  # optional
 #### Const values
 ####################################################################################################
 
+LOADER_HTML_INJECTION = f'<script src="{ROOT_PATH}/footer/loader.js"><!-- Injected by HostYourDocs --></script>'
+
 REMEMBER_ME_DURATION = dt.timedelta(days=30)
 LOGIN_DURATION_AFTER_LAST_REQUEST = dt.timedelta(minutes=10)
 

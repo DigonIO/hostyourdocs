@@ -1,6 +1,7 @@
 #!/bin/bash
 
-__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source ${__dir}/build_base.sh
+__dir_rel="$(dirname "${BASH_SOURCE[0]}")"
+
+source "${__dir_rel}/build_base.sh"
 
 docker build -t hostyourdocs:local build_image

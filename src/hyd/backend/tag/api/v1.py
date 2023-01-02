@@ -161,13 +161,12 @@ async def _delete(
     except UnknownTagError:
         raise HTTPException_UNKNOWN_TAG
 
+    project_entry = tag_entry.project_entry
+
     # rm old mount point if one exists
     if tag_entry.version is not None:
-        MountHelper.unmount_tag(project_name=tag_entry.project_entry.name, tag=tag_entry.tag)
+        MountHelper.unmount_tag(project_name=project_entry.name, tag=tag_entry.tag)
 
-    delete_tag_entry_by_ref(tag_entry=tag_entry, db=db)
-
-    project_entry = tag_entry.project_entry
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, tag: %s}",
         user_entry.session_token_entry.id,
@@ -177,7 +176,10 @@ async def _delete(
         project_entry.name,
         tag,
     )
-    return _tag_entry_to_response_schema(tag_entry)
+
+    response = _tag_entry_to_response_schema(tag_entry)
+    delete_tag_entry_by_ref(tag_entry=tag_entry, db=db)
+    return response
 
 
 ####################################################################################################

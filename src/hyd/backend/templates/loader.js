@@ -3,30 +3,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const root_path = "{{ root_path }}"
-const footer_path = "{{ footer_path }}"
+const footer_content_path = "{{ footer_content_path }}"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Loader Script
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var folder_offset = 0
-if (root_path != "None") {
-    folder_offset = root_path.split("/")
-}
+let folder_offset = root_path.split("/").length
 
 const path_elements = window.location.pathname.split("/")
 
-const project = path_elements[2 + folder_offset]
-const is_tag = path_elements[3 + folder_offset] === "t"
-const tag_ver = path_elements[4 + folder_offset]
+const project = path_elements[1 + folder_offset]
+const is_tag = path_elements[2 + folder_offset] === "t"
+const tag_ver = path_elements[3 + folder_offset]
 
-var request = ""
-
-if (root_path != "None") {
-    request += root_path
-}
-
-request += footer_path + `?project_name=${project}&is_tag=${is_tag}&tag_ver=${tag_ver}`
+var request = root_path + footer_content_path
+request += `?project_name=${project}&is_tag=${is_tag}&tag_ver=${tag_ver}`
 
 function inject_footer(html_code) {
     var footer = document.createElement("div")

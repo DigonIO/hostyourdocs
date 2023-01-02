@@ -25,11 +25,11 @@ from hyd.backend.util.models import (
 class UserEntry(DeclarativeMeta, TimeStampMixin):
     __tablename__ = "user_table"
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
-    id = Column(Integer, primary_key=True)
-    username = Column(String(length=MAX_LENGTH_STR_ID), unique=True)
-    hashed_password = Column(LargeBinary)
-    is_admin = Column(Boolean)
-    is_disabled = Column(Boolean, default=False)
+    id: Mapped[PrimaryKey] = Column(Integer, primary_key=True)
+    username: Mapped[NameStr] = Column(String(length=MAX_LENGTH_STR_ID), unique=True)
+    hashed_password: Mapped[bytes] = Column(LargeBinary)
+    is_admin: Mapped[bool] = Column(Boolean)
+    is_disabled: Mapped[bool] = Column(Boolean, default=False)
 
     token_entries: Mapped[list[TokenEntry]] = relationship(
         "TokenEntry", back_populates="user_entry"

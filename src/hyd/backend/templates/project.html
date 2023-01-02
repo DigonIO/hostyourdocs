@@ -9,7 +9,7 @@
     <h2>Tags</h2>
     <ul>
         {% for entry in project.tags %}
-        <li><a href="/{{entry.link}}" {% if not entry.primary %} rel="nofollow" {% endif %}>
+        <li><a href="{{root_path}}/{{entry.link}}" {% if not entry.primary %} rel="nofollow" {% endif %}>
                 {{entry.tag}}
             </a></li>
         {% endfor %}
@@ -17,7 +17,7 @@
     <h2>Versions</h2>
     <ul>
         {% for entry in project.versions %}
-        <li><a href="/{{entry.link}}" rel="nofollow">{{entry.version}}</a></li>
+        <li><a href="{{root_path}}/{{entry.link}}" rel="nofollow">{{entry.version}}</a></li>
         {% endfor %}
     </ul>
 

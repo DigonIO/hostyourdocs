@@ -13,6 +13,7 @@ from hyd.backend.util.const import (
     LINK_IMPRESS,
     LINK_PRIVACY,
     NAME_HOSTED_BY,
+    ROOT_PATH,
     TEMPLATE_PATH,
 )
 from hyd.backend.util.logger import HydLogger
@@ -59,6 +60,7 @@ async def frontend_project(request: Request, project_name: NameStr, db: Session 
         "project.html",
         {
             "request": request,
+            "root_path": ROOT_PATH,
             "html_title": HTML_TITLE,
             "link_privacy": LINK_PRIVACY,
             "link_impress": LINK_IMPRESS,

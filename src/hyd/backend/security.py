@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, ValidationError
 
 from hyd.backend.exc import HydError, VerificationError
-from hyd.backend.util.const import SECRET_KEY
+from hyd.backend.util.const import ROOT_PATH, SECRET_KEY
 from hyd.backend.util.models import NameStr, PrimaryKey
 
 if SECRET_KEY is None:
@@ -37,7 +37,7 @@ SCOPES = [
 ]
 
 OAUTH2_SCHEME = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/user/login",
+    tokenUrl=ROOT_PATH + "/api/v1/user/login",
     scopes={
         Scopes.USER: "Basic user operations.",
         Scopes.TOKEN: "Manage tokens.",

@@ -15,8 +15,14 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+import hyd.backend.project.service as project_service
 from hyd.backend.db import get_db
-from hyd.backend.exc import HTTPException_UNKNOWN_VERSION, UnknownVersionError
+from hyd.backend.exc import (
+    HTTPException_UNKNOWN_PROJECT,
+    HTTPException_UNKNOWN_VERSION,
+    UnknownProjectError,
+    UnknownVersionError,
+)
 from hyd.backend.mount_helper import MountHelper, path_to_version
 from hyd.backend.security import Scopes
 from hyd.backend.tag.models import TagEntry
@@ -68,9 +74,13 @@ async def _upload(
 ):
     user_entry.check_token_project_permission(project_id=project_id)
 
+    try:
+        project_entry = project_service.read_project(project_id=project_id, db=db)
+    except UnknownProjectError:
+        raise HTTPException_UNKNOWN_PROJECT
+
     version_entry = _version_upload(file=file, project_id=project_id, version=version, db=db)
 
-    project_entry = version_entry.project_entry
     LOGGER.info(
         "{token_id: %d, user_id: %d, username: %s, project_id: %d, project_name: %s, version: %s}",
         user_entry.session_token_entry.id,

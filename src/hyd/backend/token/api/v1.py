@@ -15,6 +15,7 @@ from hyd.backend.token.models import (
     API_V1_CREATE__POST,
     API_V1_LIST__GET,
     API_V1_REVOKE__PATCH,
+    FullTokenResponseSchema,
     TokenEntry,
     TokenResponseSchema,
     TokenSchema,
@@ -60,14 +61,16 @@ HTTPException_TOKEN_ALREADY_REVOKED = HTTPException(
 
 @v1_router.post("/create", responses=API_V1_CREATE__POST)
 async def _create(
-    project_id: PrimaryKey,
+    project_id: PrimaryKey | None,
     expires_on: dt.datetime | dt.timedelta | None = None,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
-):
+) -> FullTokenResponseSchema:  # poor mypy
 
-    if isinstance(expires_on, dt.datetime) and expires_on.tzinfo is None:
-        raise HTTPException_TIMEZONE_AWARE
+    if isinstance(expires_on, dt.datetime):
+        if expires_on.tzinfo is None:
+            raise HTTPException_TIMEZONE_AWARE
+        expires_on = expires_on.astimezone(UTC)
     elif isinstance(expires_on, dt.timedelta):
         expires_on = dt.datetime.now(tz=UTC) + expires_on
 
@@ -80,7 +83,7 @@ async def _create(
     scopes = [Scopes.PROJECT, Scopes.VERSION, Scopes.TAG]
     token_entry = create_token(
         user_id=user_id,
-        expires_on=expires_on.astimezone(UTC),
+        expires_on=expires_on,
         scopes=scopes,
         is_login_token=False,
         project_id=project_id,
@@ -106,7 +109,7 @@ async def _list(
     include_expired_revoked: bool = False,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
-):
+) -> list[TokenResponseSchema]:
     if include_expired_revoked:
         return [_token_entry_to_response_schema(entry) for entry in user_entry.token_entries]
     else:
@@ -122,7 +125,7 @@ async def _revoke(
     token_id: PrimaryKey,
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
-):
+) -> TokenResponseSchema:
     try:
         token_entry = read_token(token_id=token_id, db=db)
     except UnknownTokenError:

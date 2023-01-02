@@ -1,3 +1,7 @@
+import datetime as dt
+from typing import TypedDict
+
+from fastapi import status
 from sqlalchemy import (
     Boolean,
     Column,
@@ -11,8 +15,18 @@ from sqlalchemy.orm import Mapped, relationship
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.project.models import ProjectEntry
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
-from hyd.backend.util.models import NameStr, PrimaryKey, TimeStampMixin
+from hyd.backend.util.models import (
+    BASE_API_RESPONSE_SCHEMA,
+    DETAIL_STR,
+    NameStr,
+    PrimaryKey,
+    TimeStampMixin,
+)
 from hyd.backend.version.models import VersionEntry
+
+####################################################################################################
+#### SQLAlchemy table definitions
+####################################################################################################
 
 
 class TagEntry(DeclarativeMeta, TimeStampMixin):
@@ -24,7 +38,9 @@ class TagEntry(DeclarativeMeta, TimeStampMixin):
         {"extend_existing": EXTEND_EXISTING},
     )
     project_id: Mapped[PrimaryKey] = Column(Integer, ForeignKey(ProjectEntry.id), primary_key=True)
-    version: Mapped[NameStr] = Column(String(length=MAX_LENGTH_STR_ID), nullable=True, default=None)
+    version: Mapped[NameStr | None] = Column(
+        String(length=MAX_LENGTH_STR_ID), nullable=True, default=None
+    )
 
     tag: Mapped[NameStr] = Column(String(length=MAX_LENGTH_STR_ID), primary_key=True)
     primary: Mapped[bool] = Column(Boolean)  # primary == False will be marked as copy for google
@@ -49,4 +65,47 @@ class PrimaryTagEntry(DeclarativeMeta, TimeStampMixin):
     primary_tag: Mapped[NameStr] = Column(String(length=MAX_LENGTH_STR_ID))
 
 
-#
+####################################################################################################
+#### Response schema
+####################################################################################################
+
+
+class TagResponseSchema(TypedDict):
+    project_id: PrimaryKey
+    tag: NameStr
+    created_at: dt.datetime
+    updated_at: dt.datetime | None
+    version: NameStr | None
+    primary: bool
+
+
+####################################################################################################
+#### OpenAPI definitions
+####################################################################################################
+
+
+API_V1_CREATE__POST = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": TagResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}
+
+
+API_V1_LIST__GET = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": list[TagResponseSchema]},
+}
+
+
+API_V1_MOVE__PATCH = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": TagResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}
+
+
+API_V1_DELETE__DELETE = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": TagResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}

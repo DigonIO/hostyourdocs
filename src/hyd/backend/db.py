@@ -3,8 +3,8 @@ import sqlalchemy.orm
 from fastapi import Request
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+from hyd.backend.exc import HydError
 from hyd.backend.util.const import MARIADB_ADDRESS, MARIADB_PASSWORD
-from hyd.backend.util.error import HydError
 
 EXTEND_EXISTING = True
 

@@ -6,15 +6,15 @@ from sqlalchemy.orm import Session
 
 import hyd.backend.token.service as token_service
 from hyd.backend.db import get_db
-from hyd.backend.security import JWT, OAUTH2_SCHEME, verify_jwt
-from hyd.backend.token.models import TokenEntry
-from hyd.backend.user.models import UserEntry
-from hyd.backend.util.const import HEADERS
-from hyd.backend.util.error import (
+from hyd.backend.exc import (
     HTTPException_NO_PERMISSION,
     HTTPException_USER_DISABLED,
     VerificationError,
 )
+from hyd.backend.security import JWT, OAUTH2_SCHEME, verify_jwt
+from hyd.backend.token.models import TokenEntry
+from hyd.backend.user.models import UserEntry
+from hyd.backend.util.const import HEADERS
 from hyd.backend.util.logger import HydLogger
 
 UTC = dt.timezone.utc

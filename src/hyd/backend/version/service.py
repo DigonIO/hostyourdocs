@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import hyd.backend.project.service as project_service
-from hyd.backend.util.error import NameStrError, UnknownVersionError
+from hyd.backend.exc import NameStrError, UnknownVersionError
 from hyd.backend.util.models import NameStr, PrimaryKey
 from hyd.backend.version.models import VersionEntry
 

@@ -13,6 +13,7 @@ from hyd.backend.util.const import (
     LINK_IMPRESS,
     LINK_PRIVACY,
     NAME_HOSTED_BY,
+    ROOT_PATH,
     TEMPLATE_PATH,
 )
 from hyd.backend.util.logger import HydLogger
@@ -27,7 +28,7 @@ frontend_router = APIRouter(tags=["frontend"])
 footer_router = APIRouter(tags=["footer"])
 
 ####################################################################################################
-#### Frontend Endpoints
+#### Simple API
 ####################################################################################################
 
 
@@ -59,12 +60,13 @@ async def frontend_project(request: Request, project_name: NameStr, db: Session 
         "project.html",
         {
             "request": request,
+            "root_path": ROOT_PATH,
             "html_title": HTML_TITLE,
             "link_privacy": LINK_PRIVACY,
             "link_impress": LINK_IMPRESS,
             "link_hosted_by": LINK_HOSTED_BY,
             "name_hosted_by": NAME_HOSTED_BY,
-            "project": project_to_dict(project_entry),
+            "project": _project_to_dict(project_entry),
         },
     )
 
@@ -121,7 +123,7 @@ async def api_loader(
 ####################################################################################################
 
 
-def project_to_dict(project_entry: ProjectEntry) -> dict:
+def _project_to_dict(project_entry: ProjectEntry) -> dict:
     name = project_entry.name
     tag_entries: list[TagEntry] = project_entry.tag_entries
     version_entries: list[VersionEntry] = project_entry.version_entries

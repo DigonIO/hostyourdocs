@@ -1,5 +1,6 @@
 import datetime as dt
 
+from fastapi import status
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, Session, relationship
@@ -9,25 +10,19 @@ from hyd.backend.util.const import (
     LOGIN_DURATION_AFTER_LAST_REQUEST,
     MAX_LENGTH_TOKEN_SCOPE,
 )
-from hyd.backend.util.models import PrimaryKey, TimeStampMixin
+from hyd.backend.util.models import (
+    BASE_API_RESPONSE_SCHEMA,
+    DETAIL_STR,
+    PrimaryKey,
+    TimeStampMixin,
+)
 
 UTC = dt.timezone.utc
 
 
-class TokenMetaSchema(BaseModel):
-    token_id: PrimaryKey
-    user_id: PrimaryKey
-    expires_on: dt.datetime | None
-    is_login_token: bool
-    is_expired: bool
-    revoked_at: dt.datetime | None
-    scopes: list[str]
-    project_id: PrimaryKey | None
-
-
-class TokenSchema(BaseModel):
-    access_token: str
-    token_type: str
+####################################################################################################
+#### SQLAlchemy table definitions
+####################################################################################################
 
 
 class TokenEntry(DeclarativeMeta, TimeStampMixin):
@@ -106,3 +101,54 @@ class TokenScopeEntry(DeclarativeMeta):
     scope = Column(String(length=MAX_LENGTH_TOKEN_SCOPE))
 
     token_entry = relationship("TokenEntry", back_populates="scope_entries")
+
+
+####################################################################################################
+#### Response schema
+####################################################################################################
+
+
+class TokenSchema(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class TokenResponseSchema(BaseModel):
+    token_id: PrimaryKey
+    user_id: PrimaryKey
+    created_at: dt.datetime
+    revoked_at: dt.datetime | None
+    expires_on: dt.datetime | None
+    is_expired: bool
+    is_login_token: bool
+    scopes: list[str]
+    project_id: PrimaryKey | None
+
+
+class FullTokenResponseSchema(TokenSchema, TokenResponseSchema):
+    ...
+
+
+####################################################################################################
+#### OpenAPI definitions
+####################################################################################################
+
+
+API_V1_CREATE__POST = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": FullTokenResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}
+
+
+API_V1_LIST__GET = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": list[TokenResponseSchema]},
+}
+
+
+API_V1_REVOKE__PATCH = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": TokenResponseSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3
+
+### Feature
+
++ Add the ROOT_PATH env var to the template file.
++ Complete the OpenAPI definition of the REST API.
+
+### Fix
+
++ Add root path to links in HTML templates.
+
 ## 0.1.2
 
 ### Fix

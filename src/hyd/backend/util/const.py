@@ -13,7 +13,8 @@ SECRET_KEY: str | None = os.getenv("SECRET_KEY")
 MARIADB_PASSWORD: str | None = os.getenv("MARIADB_PASSWORD")
 MARIADB_ADDRESS: str | None = os.getenv("MARIADB_ADDRESS")
 
-ROOT_PATH: str | None = os.getenv("ROOT_PATH")  # optional
+_root_path: str | None = os.getenv("ROOT_PATH")  # optional
+ROOT_PATH: str = _root_path if _root_path else ""
 
 NAME_HOSTED_BY: str | None = os.getenv("NAME_HOSTED_BY")  # optional
 LINK_HOSTED_BY: str | None = os.getenv("LINK_HOSTED_BY")  # optional

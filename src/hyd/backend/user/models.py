@@ -1,11 +1,25 @@
+import datetime as dt
+from typing import TypedDict
+
+from fastapi import status
 from sqlalchemy import Boolean, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, relationship
 
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
-from hyd.backend.token.models import TokenEntry
+from hyd.backend.exc import HTTPException_NO_PERMISSION
+from hyd.backend.token.models import TokenEntry, TokenSchema
 from hyd.backend.util.const import MAX_LENGTH_STR_ID
-from hyd.backend.util.error import HTTPException_NO_PERMISSION
-from hyd.backend.util.models import PrimaryKey, TimeStampMixin
+from hyd.backend.util.models import (
+    BASE_API_RESPONSE_SCHEMA,
+    DETAIL_STR,
+    NameStr,
+    PrimaryKey,
+    TimeStampMixin,
+)
+
+####################################################################################################
+#### SQLAlchemy table definitions
+####################################################################################################
 
 
 class UserEntry(DeclarativeMeta, TimeStampMixin):
@@ -43,3 +57,46 @@ class UserEntry(DeclarativeMeta, TimeStampMixin):
             return
         if token_project_id != project_id:
             raise HTTPException_NO_PERMISSION
+
+
+####################################################################################################
+#### Response schema
+####################################################################################################
+
+# NOTE currently unused
+class UserResponseSchema(TypedDict):
+    id: PrimaryKey
+    username: NameStr
+    is_admin: bool
+    is_disabled: bool
+    created_at: dt.datetime
+
+
+####################################################################################################
+#### OpenAPI definitions
+####################################################################################################
+
+
+API_V1_LOGIN__POST = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": TokenSchema},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}
+
+
+API_V1_LOGOUT__PATCH = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": str},
+}
+
+API_V1_CHANGE_PASSWORD__PATCH = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": str},
+    status.HTTP_400_BAD_REQUEST: DETAIL_STR,
+}
+
+
+API_V1_GREET__GET = {
+    **BASE_API_RESPONSE_SCHEMA,
+    status.HTTP_200_OK: {"model": str},
+}

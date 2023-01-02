@@ -18,7 +18,7 @@ LOGGER = HydLogger("App")
 DeclarativeMeta.metadata.create_all(bind=engine)
 
 
-app = FastAPI(root_path=ROOT_PATH if ROOT_PATH else "")
+app = FastAPI(root_path=ROOT_PATH)
 # https://fastapi.tiangolo.com/tutorial/cors/
 
 ####################################################################################################

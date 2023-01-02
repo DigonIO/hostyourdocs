@@ -86,8 +86,8 @@ async def api_loader(
         "loader.js",
         {
             "request": request,
-            "root_path": None,
-            "footer_path": "/footer/content.html",
+            "root_path": ROOT_PATH,
+            "footer_content_path": "/footer/content.html",
         },
     )
 
@@ -108,6 +108,7 @@ async def api_loader(
         "footer.html",
         {
             "request": request,
+            "root_path": ROOT_PATH,
             "link_privacy": LINK_PRIVACY,
             "link_impress": LINK_IMPRESS,
             "link_hosted_by": LINK_HOSTED_BY,

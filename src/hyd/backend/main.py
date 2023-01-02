@@ -7,9 +7,9 @@ from hyd.backend.db import DeclarativeMeta, SessionMaker, engine
 from hyd.backend.frontend import footer_router, frontend_router
 from hyd.backend.mount_helper import MountHelper
 from hyd.backend.user.setup import setup_admin_user
-from hyd.backend.util.const import ROOT_PATH, PATH_PROJECTS
+from hyd.backend.util.const import PATH_PROJECTS, ROOT_PATH
+from hyd.backend.util.injection import reinject_js_loader_to_html
 from hyd.backend.util.logger import HydLogger
-from hyd.backend.version.api.v1 import reinject_js_loader_to_html
 
 LOGGER = HydLogger("App")
 

@@ -144,7 +144,7 @@ def _path_to_project(project_id: PrimaryKey) -> Path:
 
 def _project_entry_to_response_schema(project_entry: ProjectEntry) -> ProjectResponseSchema:
     version_entries: list[VersionEntry] = project_entry.version_entries
-    tag_entries: list[TagEntry] = project_entry.version_entries
+    tag_entries: list[TagEntry] = project_entry.tag_entries
 
     return ProjectResponseSchema(
         id=project_entry.id,

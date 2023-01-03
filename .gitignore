@@ -38,7 +38,6 @@ var/
 *.manifest
 *.spec
 
-
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -62,7 +61,8 @@ coverage.xml
 *.log
 
 # Sphinx documentation
-docs/_build/
+_build/
+_autosummary/
 
 # PyBuilder
 target/

@@ -17,6 +17,10 @@ class Dependecy(str, Enum):
     JINJA2 = "Jinja2==3.1.2"
     PRE_COMMIT = "pre-commit==2.20.0"
     TYPES_UJSON = "types-ujson==5.6.0.0"
+    SPHINX = "Sphinx==5.2.3"
+    M2R2 = "m2r2==0.3.3"
+    NUMPYDOC = "numpydoc==1.5.0"
+    FURO = "furo==2022.9.29"
 
 
 Dep = Dependecy
@@ -34,7 +38,15 @@ REQ_INSTALL = {
     Dep.JINJA2,
 }
 
-REQ_DEV = REQ_INSTALL | {Dep.PRE_COMMIT, Dep.SQLALCHEMY2_STUBS, Dep.TYPES_UJSON}
+REQ_DEV = REQ_INSTALL | {
+    Dep.PRE_COMMIT,
+    Dep.SQLALCHEMY2_STUBS,
+    Dep.TYPES_UJSON,
+    Dep.SPHINX,
+    Dep.M2R2,
+    Dep.NUMPYDOC,
+    Dep.FURO,
+}
 
 req_to_str_list = lambda req: [entry.value for entry in req]
 

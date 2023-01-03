@@ -29,23 +29,22 @@ and might exhibit unexpected behavior! HostYourDocs is currently undocumented an
 Make sure you have [docker](https://www.docker.com/) installed and the
 [docker daemon](https://docs.docker.com/get-started/overview/) is running.
 
-Move the `docker-compose.yaml` file and the `envfiles/` folder from the `./docker`
-directory to wherever you want to manage the service from.
+### Get The Required Files
+
+Copy the `docker-compose.yaml` file and the `envfiles/` folder from the `./docker`
+directory in this repository to the desired path on your machine where you want to manage
+the service from.
 Then replace `<TAG>`, `<PORT>` and `<PATH>` according to your needs in the
 `docker-compose.yaml` file.
 
 For the variable `<TAG>` our latest images can be found in the
 [container registry](https://gitlab.com/DigonIO/hostyourdocs/container_registry/3759011).
 
-Make sure to create the volumes required by the docker compose project:
-
-```bash
-# mkdir -p <PATH>/hyd/data_backend
-# mkdir -p <PATH>/hyd/data_db
-```
+### Setup Environment Variables
 
 In the `envfiles/` directory create the environment files `backend.env`, `db.env`
 and `shared.env` according to the given `envfiles/*.env.template` files.
+Setup the variables listed below according to your needs.
 
 The environment variables for the backend service `envfiles/backend.env`:
 
@@ -72,11 +71,20 @@ The shared environment variables between the backend and database `envfiles/db.e
 | --------------------- | -------- | --------------------------------------------------------- |
 | MARIADB_PASSWORD      | yes      | See [dockerhub#mariadb](https://hub.docker.com/_/mariadb) |
 
-With the variables declared, change to the directory containing your `docker-compose.yaml` and
-start the compose project:
+### Create Docker Volumes
+
+Make sure to create the volumes required by the docker compose project:
 
 ```bash
-cd <docker-compose-dir>
+# mkdir -p <PATH>/hyd/data_backend
+# mkdir -p <PATH>/hyd/data_db
+```
+
+### Start HostYourDocs
+
+Execute the follow command from the directory with the HostYourDocs `docker-compose.yaml` file:
+
+```bash
 docker compose up
 ```
 

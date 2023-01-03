@@ -22,7 +22,7 @@ def create_user(*, username: str, password: str, is_admin: bool, db: Session) ->
 
 
 def read_user(*, user_id: PrimaryKey, db: Session) -> UserEntry:
-    user_entry = db.query(UserEntry).get(user_id)
+    user_entry: UserEntry | None = db.query(UserEntry).get(user_id)
 
     if user_entry is None:
         raise UnknownUserError
@@ -32,9 +32,11 @@ def read_user(*, user_id: PrimaryKey, db: Session) -> UserEntry:
 
 def read_users_by_username(*, username: str, db: Session) -> UserEntry:
     try:
-        return db.query(UserEntry).filter(UserEntry.username == username).all()[0]
+        user_entry: UserEntry = db.query(UserEntry).filter(UserEntry.username == username).all()[0]
     except IndexError:
         raise UnknownUserError
+
+    return user_entry
 
 
 def read_users(*, db: Session) -> list[UserEntry]:

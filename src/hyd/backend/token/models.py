@@ -8,11 +8,13 @@ from sqlalchemy.orm import Mapped, Session, relationship
 from hyd.backend.db import EXTEND_EXISTING, DeclarativeMeta
 from hyd.backend.util.const import (
     LOGIN_DURATION_AFTER_LAST_REQUEST,
+    MAX_LENGTH_STR_COMMENT,
     MAX_LENGTH_TOKEN_SCOPE,
 )
 from hyd.backend.util.models import (
     BASE_API_RESPONSE_SCHEMA,
     DETAIL_STR,
+    CommentStr,
     PrimaryKey,
     TimeStampMixin,
 )
@@ -28,14 +30,15 @@ UTC = dt.timezone.utc
 class TokenEntry(DeclarativeMeta, TimeStampMixin):
     __tablename__ = "token_table"
     __table_args__ = {"extend_existing": EXTEND_EXISTING}
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user_table.id"))
-    is_login_token = Column(Boolean)
-    is_expired = Column(Boolean, default=False)
+    id: Mapped[PrimaryKey] = Column(Integer, primary_key=True)
+    user_id: Mapped[PrimaryKey] = Column(Integer, ForeignKey("user_table.id"))
+    is_login_token: Mapped[bool] = Column(Boolean)
+    is_expired: Mapped[bool] = Column(Boolean, default=False)
     project_id: Mapped[PrimaryKey] = Column(Integer, ForeignKey("project_table.id"), nullable=True)
     _expires_on: Mapped[dt.datetime] = Column(DateTime, nullable=True)
-    _last_request = Column(DateTime, default=dt.datetime.utcnow)
-    _revoked_at = Column(DateTime, nullable=True, default=None)
+    _last_request: Mapped[dt.datetime] = Column(DateTime, default=dt.datetime.utcnow)
+    _revoked_at: Mapped[dt.datetime] = Column(DateTime, nullable=True, default=None)
+    comment: Mapped[CommentStr] = Column(String(length=MAX_LENGTH_STR_COMMENT))
 
     scope_entries: Mapped[list["TokenScopeEntry"]] = relationship(
         "TokenScopeEntry", back_populates="token_entry", cascade="all,delete"
@@ -123,6 +126,7 @@ class TokenResponseSchema(BaseModel):
     is_login_token: bool
     scopes: list[str]
     project_id: PrimaryKey | None
+    comment: str
 
 
 class FullTokenResponseSchema(TokenSchema, TokenResponseSchema):

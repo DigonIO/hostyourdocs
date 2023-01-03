@@ -19,10 +19,15 @@ def create_token(
     scopes: list[str],
     is_login_token: bool,
     project_id: PrimaryKey | None,
+    comment: str,
     db: Session,
 ) -> TokenEntry:
     token_entry = TokenEntry(
-        user_id=user_id, expires_on=expires_on, is_login_token=is_login_token, project_id=project_id
+        user_id=user_id,
+        expires_on=expires_on,
+        is_login_token=is_login_token,
+        project_id=project_id,
+        comment=comment,
     )
     db.add(token_entry)
     db.commit()

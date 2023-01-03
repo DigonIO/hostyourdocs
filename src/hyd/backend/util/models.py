@@ -19,6 +19,11 @@ NameStr = constr(
     min_length=3,
     max_length=MAX_LENGTH_STR_ID,
 )
+CommentStr = constr(
+    strip_whitespace=True,
+    min_length=0,
+    max_length=MAX_LENGTH_STR_ID,
+)
 
 ####################################################################################################
 #### SQLAlchemy table mixins

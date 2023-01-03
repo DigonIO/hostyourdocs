@@ -96,6 +96,7 @@ async def _login(
         scopes=SCOPES,
         is_login_token=True,
         project_id=None,
+        comment="HYD_LOGIN_TOKEN",
         db=db,
     )
 

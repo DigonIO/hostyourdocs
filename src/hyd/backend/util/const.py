@@ -60,6 +60,7 @@ PATH_DATA = Path("data")
 PATH_PROJECTS = PATH_DATA / "projects"
 
 MAX_LENGTH_STR_ID = 64
+MAX_LENGTH_STR_COMMENT = 128
 MAX_LENGTH_TOKEN_SCOPE = 16
 
 HEADERS = {"WWW-Authenticate": "Bearer"}

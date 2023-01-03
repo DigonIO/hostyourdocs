@@ -63,6 +63,7 @@ HTTPException_TOKEN_ALREADY_REVOKED = HTTPException(
 async def _create(
     project_id: PrimaryKey | None,
     expires_on: dt.datetime | dt.timedelta | None = None,
+    comment: str = "",
     user_entry: UserEntry = Security(authenticate_user, scopes=[Scopes.TOKEN]),
     db: Session = Depends(get_db),
 ) -> FullTokenResponseSchema:
@@ -86,6 +87,7 @@ async def _create(
         scopes=scopes,
         is_login_token=False,
         project_id=project_id,
+        comment=comment,
         db=db,
     )
 
@@ -108,6 +110,7 @@ async def _create(
         is_login_token=token_entry.is_login_token,
         is_expired=token_entry.is_expired,
         revoked_at=token_entry._revoked_at,
+        comment=comment,
         scopes=[entry.scope for entry in token_entry.scope_entries],
         project_id=token_entry.project_id,
     )
@@ -170,4 +173,5 @@ def _token_entry_to_response_schema(token_entry: TokenEntry) -> TokenResponseSch
         revoked_at=token_entry._revoked_at,
         scopes=[entry.scope for entry in token_entry.scope_entries],
         project_id=token_entry.project_id,
+        comment=token_entry.comment,
     )

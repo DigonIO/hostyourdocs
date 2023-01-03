@@ -13,9 +13,12 @@ from hyd.backend.util.logger import HydLogger
 
 LOGGER = HydLogger("App")
 
-# edits ALL existing html files in storage (not ideal)
-for dir_path in PATH_PROJECTS.iterdir():
-    reinject_js_loader_to_html(dir_path=dir_path)
+# Edits ALL existing html files in storage (not ideal)
+try:
+    for dir_path in PATH_PROJECTS.iterdir():
+        reinject_js_loader_to_html(dir_path=dir_path)
+except FileNotFoundError:
+    ...  # If FileNotFoundError was raised no projected was uploaded, so just ignore the Exception
 
 # Only useful for local development
 # DeclarativeMeta.metadata.drop_all(bind=engine)

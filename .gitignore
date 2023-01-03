@@ -1,5 +1,6 @@
 # Tmp data
 build_image/
+openapi.json
 
 # Environment
 venv/
@@ -51,6 +52,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
+.mypy_cache
 
 # Translations
 *.mo

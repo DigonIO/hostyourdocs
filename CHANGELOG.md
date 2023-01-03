@@ -1,8 +1,24 @@
 # Changelog
 
+## 0.2.0
+
+### Feature
+
++ Tokens can be annotated with a comment.
+
+### Misc
+
++ Add an installation guide to the `README.md`.
++ Add a `CONTRIBUTION.md` to the repository.
+
+### Bugfix
+
++ `/api/token/create` no longer failing with `expires_on=None`.
++ Include missing `__init__.py` files.
+
 ## 0.1.6
 
-### Fix
+### Bugfix
 
 + Include previously missing root_path in TemplateResponse.
 + Working footer with reverse proxy.
@@ -15,7 +31,7 @@
 
 ## 0.1.4
 
-### Fix
+### Bugfix
 
 + Fix crashing thru unknown project ID while uploading a new version.
 + Fix project, tag, version deletion crash.
@@ -27,19 +43,19 @@
 + Add the ROOT_PATH env var to the template file.
 + Complete the OpenAPI definition of the REST API.
 
-### Fix
+### Bugfix
 
 + Add root path to links in HTML templates.
 
 ## 0.1.2
 
-### Fix
+### Bugfix
 
 + Fix static file path in setup.py and PGK folder definition.
 
 ## 0.1.1
 
-### Fix
+### Bugfix
 
 + Add missing static files.
 

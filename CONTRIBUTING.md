@@ -70,14 +70,15 @@ and `shared.env` according to the given `envfiles/*.env.template` files.
 
 The environment variables for the backend service `envfiles/backend.env`:
 
-| variable         | required | info                              |
+| variable         | required | info                              |,
+
 | ---------------- | -------- | --------------------------------- |
 | SECRET_KEY       | yes      | Hex string with at least 32 bytes |
-| NAME_HOSTED_BY   | no       | TODO                              |
-| LINK_HOSTED_BY   | no       | TODO                              |
-| LINK_IMPRESS     | no       | TODO                              |
-| LINK_PRIVACY     | no       | TODO                              |
-| ROOT_PATH        | no       | TODO                              |
+| NAME_HOSTED_BY   | no       | Provider name                     |
+| LINK_HOSTED_BY   | no       | Provider website URL              |
+| LINK_IMPRESS     | no       | Provider impress URL              |
+| LINK_PRIVACY     | no       | Provider privacy URL              |
+| ROOT_PATH        | no       | Webserver root path for HYD       |
 
 The environment variables for the mariadb database `envfiles/db.env`:
 

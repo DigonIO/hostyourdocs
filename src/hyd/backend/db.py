@@ -8,11 +8,6 @@ from hyd.backend.util.const import MARIADB_ADDRESS, MARIADB_PASSWORD
 
 EXTEND_EXISTING = True
 
-if MARIADB_PASSWORD is None:
-    raise HydError("MARIADB_PASSWORD is missing!")
-if MARIADB_ADDRESS is None:
-    raise HydError("MARIADB_ADDRESS is missing!")
-
 URL_MARIADB = (
     f"mariadb+mariadbconnector://hyd_user:{MARIADB_PASSWORD}@{MARIADB_ADDRESS}:3306/hyd_db"
 )

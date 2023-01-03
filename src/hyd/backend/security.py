@@ -8,12 +8,9 @@ from hyd.backend.exc import HydError, VerificationError
 from hyd.backend.util.const import ROOT_PATH, SECRET_KEY
 from hyd.backend.util.models import NameStr, PrimaryKey
 
-if SECRET_KEY is None:
-    raise HydError("SECRET_KEY is missing!")
-
 # https://docs.python.org/3/library/secrets.html#how-many-bytes-should-tokens-use
 if len(SECRET_KEY) < 64:
-    raise HydError("SECRET_KEY is to short, use 32 byte or more!")
+    raise HydError("SECRET_KEY is too short, use 32 bytes or more!")
 
 ALGORITHM = "HS256"
 

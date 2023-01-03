@@ -1,6 +1,6 @@
 # HostYourDocs
 
-Host your static docs on your own infrastructure, easy, fast, and publicly accessible!
+Host your docs on your own infrastructure, easy and secure!
 
 [![repository](https://img.shields.io/badge/src-GitLab-orange)](https://gitlab.com/DigonIO/hostyourdocs)
 [![mirror](https://img.shields.io/badge/mirror-GitHub-orange)](https://github.com/DigonIO/hostyourdocs)
@@ -15,15 +15,70 @@ and might exhibit unexpected behavior! HostYourDocs is currently undocumented an
 
 ## Features
 
-+ Static documentation hosting
-+ Projects with versions and tags
-+ Primary tag for SEO
-+ Admin authentication
++ Serve static docs and files
++ Organize projects with versions and tags
++ Authentication (currently admin only)
 + Project tokens (for CI/CD usage)
++ Minimal webinterface
 + Injects a footer menu to each HTML
   + Easy navigation
   + Legal stuff: Impress & Privacy
-+ Very simple webinterface
+
+## Host Your Docs Using Docker Compose
+
+Make sure you have [docker](https://www.docker.com/) installed and the
+[docker daemon](https://docs.docker.com/get-started/overview/) is running.
+
+Move the `docker-compose.yaml` file and the `envfiles/` folder from the `./docker`
+directory to wherever you want to manage the service from.
+Then replace `<TAG>`, `<PORT>` and `<PATH>` according to your needs in the
+`docker-compose.yaml` file.
+
+For the variable `<TAG>` our latest images can be found in the
+[container registry](https://gitlab.com/DigonIO/hostyourdocs/container_registry/3759011).
+
+Make sure to create the volumes required by the docker compose project:
+
+```bash
+# mkdir -p <PATH>/hyd/data_backend
+# mkdir -p <PATH>/hyd/data_db
+```
+
+In the `envfiles/` directory create the environment files `backend.env`, `db.env`
+and `shared.env` according to the given `envfiles/*.env.template` files.
+
+The environment variables for the backend service `envfiles/backend.env`:
+
+| variable         | required | info                              |
+| ---------------- | -------- | --------------------------------- |
+| SECRET_KEY       | yes      | Hex string with at least 32 bytes |
+| NAME_HOSTED_BY   | no       | Provider name                     |
+| LINK_HOSTED_BY   | no       | Provider website URL              |
+| LINK_IMPRESS     | no       | Provider impress URL              |
+| LINK_PRIVACY     | no       | Provider privacy URL              |
+| ROOT_PATH        | no       | Webserver root path for HYD       |
+
+If you configure a root path, make sure to do the same for your reverse proxy.
+
+The environment variables for the mariadb database `envfiles/db.env`:
+
+| variable              | required | info                                                      |
+| --------------------- | -------- | --------------------------------------------------------- |
+| MARIADB_ROOT_PASSWORD | yes      | See [dockerhub#mariadb](https://hub.docker.com/_/mariadb) |
+
+The shared environment variables between the backend and database `envfiles/db.env`:
+
+| variable              | required | info                                                      |
+| --------------------- | -------- | --------------------------------------------------------- |
+| MARIADB_PASSWORD      | yes      | See [dockerhub#mariadb](https://hub.docker.com/_/mariadb) |
+
+With the variables declared, change to the directory containing your `docker-compose.yaml` and
+start the compose project:
+
+```bash
+cd <docker-compose-dir>
+docker compose up
+```
 
 ## Open Endpoints
 

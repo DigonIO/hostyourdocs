@@ -1,10 +1,10 @@
 version: '3'
 
-# Replace <URL/ID>, <TAG>, <PORT> and <PATH> for your setup!
+# Replace <TAG>, <PORT> and <PATH> for your setup!
 
 services:
   hyd_backend:
-    image: <URL/ID>:<TAG>
+    image: registry.gitlab.com/digonio/hostyourdocs:<TAG>
     restart: always
     volumes:
       - data_backend:/data

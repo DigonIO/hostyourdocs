@@ -16,6 +16,8 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_any_generics = true
 disallow_subclassing_any = true
+enable_recursive_aliases = true
+plugins = "sqlalchemy.ext.mypy.plugin"
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"

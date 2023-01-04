@@ -1,18 +1,52 @@
 stages:
   - build
+  #- test
+  #- release
 
 variables:
-  KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
+  IMG_BASE: registry.gitlab.com/digonio/images/hostyourdocs-base:c05cb9bb
+  IMG_KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
   CONTEXT_PATH: build_image/
 
 ####################################################################################################
-### Testing
+### Build stage
 ####################################################################################################
-
-build_dev:
+build_doc:
   stage: build
   image:
-    name: ${KANIKO}
+    name: ${IMG_BASE}
+  script:
+    - pip install -e .[dev]
+    - python -m sphinx -b html doc/ doc/_build/html
+    - tar -C ./doc/_build/html -cpz . -f ./doc_build.tar.gz
+    - >
+      curl -X 'POST'
+      'https://digon.io/hyd/api/v1/version/upload'
+      -H 'accept: application/json'
+      -H "Authorization: Bearer ${HYD_TOKEN}"
+      -H 'Content-Type: multipart/form-data'
+      -F 'file=@doc_build.tar.gz;type=application/gzip'
+      -F 'project_id=1'
+      -F "version=${CI_COMMIT_SHORT_SHA}"
+    # - >
+    #   curl -X 'POST'
+    #     "https://digon.io/hyd/api/v1/tag/create?project_id=1&tag=${CI_COMMIT_TAG}&primary=false"
+    #     -H 'accept: application/json'
+    #     -H "Authorization: Bearer ${HYD_TOKEN}"
+    #     -d ''
+    - >
+      curl -X 'PATCH'
+      "https://digon.io/hyd/api/v1/tag/move?project_id=1&tag=${CI_COMMIT_BRANCH}&version=${CI_COMMIT_SHORT_SHA}"
+      -H 'accept: application/json'
+      -H "Authorization: Bearer ${HYD_TOKEN}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
+
+### Dev
+build_image_dev:
+  stage: build
+  image:
+    name: ${IMG_KANIKO}
     entrypoint: [""]
   script:
     - sh script/build_base.sh
@@ -26,14 +60,12 @@ build_dev:
   rules:
     - if: $CI_COMMIT_TAG == null
 
-####################################################################################################
-### Release
-####################################################################################################
 
-build_tag:
+### Release
+build_image_tag:
   stage: build
   image:
-    name: ${KANIKO}
+    name: ${IMG_KANIKO}
     entrypoint: [""]
   script:
     # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html

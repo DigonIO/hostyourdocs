@@ -1,7 +1,7 @@
 stages:
   - build
-  #- test
-  #- release
+  - test
+  - release
 
 variables:
   IMG_BASE: registry.gitlab.com/digonio/images/hostyourdocs-base:c05cb9bb
@@ -11,6 +11,23 @@ variables:
 ####################################################################################################
 ### Build stage
 ####################################################################################################
+
+build_img:
+  stage: build
+  image:
+    name: ${IMG_KANIKO}
+    entrypoint: [""]
+  script:
+    # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$CI_DEPENDENCY_PROXY_SERVER\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - sh script/build_base.sh
+    - >
+      /kaniko/executor
+      --context ${CONTEXT_PATH}
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+      --verbosity info
+      --force
+
 build_doc:
   stage: build
   image:
@@ -28,12 +45,6 @@ build_doc:
       -F 'file=@doc_build.tar.gz;type=application/gzip'
       -F 'project_id=1'
       -F "version=${CI_COMMIT_SHORT_SHA}"
-    # - >
-    #   curl -X 'POST'
-    #     "https://digon.io/hyd/api/v1/tag/create?project_id=1&tag=${CI_COMMIT_TAG}&primary=false"
-    #     -H 'accept: application/json'
-    #     -H "Authorization: Bearer ${HYD_TOKEN}"
-    #     -d ''
     - >
       curl -X 'PATCH'
       "https://digon.io/hyd/api/v1/tag/move?project_id=1&tag=${CI_COMMIT_BRANCH}&version=${CI_COMMIT_SHORT_SHA}"
@@ -42,41 +53,34 @@ build_doc:
   rules:
     - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
 
-### Dev
-build_image_dev:
-  stage: build
-  image:
-    name: ${IMG_KANIKO}
-    entrypoint: [""]
+####################################################################################################
+### Test stage
+####################################################################################################
+
+test_img:
+  stage: test
+  image: "python:3.9.11-alpine3.15"
   script:
-    - sh script/build_base.sh
-    - >
-      /kaniko/executor
-      --context ${CONTEXT_PATH}
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-      --verbosity info
-      --force
-      --no-push
-  rules:
-    - if: $CI_COMMIT_TAG == null
+    - echo "Hello World"
+  allow_failure: true
+
+test_doc:
+  stage: test
+  image: "python:3.9.11-alpine3.15"
+  script:
+    - echo "Hello World"
+  allow_failure: true
 
 
-### Release
-build_image_tag:
-  stage: build
-  image:
-    name: ${IMG_KANIKO}
-    entrypoint: [""]
+####################################################################################################
+### Release stage
+####################################################################################################
+
+release_img:
+  stage: release
+  image: "python:3.9.11-alpine3.15"
   script:
-    # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$CI_DEPENDENCY_PROXY_SERVER\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - sh script/build_base.sh
-    - >
-      /kaniko/executor
-      --context ${CONTEXT_PATH}
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
-      --verbosity info
-      --force
-  only:
-    - tags
+    - echo "Hello World"
+  allow_failure: true
+
 

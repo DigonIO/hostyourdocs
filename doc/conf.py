@@ -16,10 +16,15 @@ import sys
 
 from sphinx.locale import _
 
-from hyd.tooling import reset_envvars, set_envvars
+from hyd.tooling import set_envvars
 
 # -- Project information -----------------------------------------------------
-old_vals = set_envvars()
+# Hack: sphinx tries to import all modules with autosummary - without the `set_envvars()` call
+# we would fail at importing everything that requires util.const
+# if the environment variables have not been set
+# Known side effect here is, that unfortunately this will overwrite said variables in
+# the users environment
+set_envvars()
 
 with open("../src/hyd/__init__.py", "r") as file:
     content = file.read()
@@ -102,5 +107,3 @@ latex_elements = {
         r"\usepackage[columns=1]{idxlayout}\makeindex",
     ],
 }
-
-reset_envvars(old_vals)

@@ -50,8 +50,9 @@ build_doc:
       "https://digon.io/hyd/api/v1/tag/move?project_id=1&tag=${CI_COMMIT_BRANCH}&version=${CI_COMMIT_SHORT_SHA}"
       -H 'accept: application/json'
       -H "Authorization: Bearer ${HYD_TOKEN}"
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
+  only:
+  - master
+  - dev
 
 ####################################################################################################
 ### Test stage
@@ -82,5 +83,6 @@ release_img:
   script:
     - echo "Hello World"
   allow_failure: true
-
+  only:
+  - tags
 

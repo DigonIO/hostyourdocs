@@ -18,3 +18,10 @@ repos:
         require_serial: true
         types_or: [python, pyi]
         args: [--safe, --quiet]
+      - id: sphinx
+        name: sphinx
+        entry: python
+        language: system
+        pass_filenames: false
+        always_run: true
+        args: [-m, sphinx, -b, html, doc/, doc/_build/html]

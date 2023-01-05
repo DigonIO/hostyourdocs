@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.1
+
+### Misc
+
++ Add HYD project links to the injected footer.
++ Add title and version to swagger.
++ Start a documentation.
++ Add REST API testing.
++ Optimize the README.
++ Optimize the CI/CD pipeline.
+
 ## 0.2.0
 
 ### Feature

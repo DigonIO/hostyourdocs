@@ -129,8 +129,22 @@ class TokenResponseSchema(BaseModel):
     comment: str
 
 
-class FullTokenResponseSchema(TokenSchema, TokenResponseSchema):
-    ...
+# TODO: Use the shorter version if it stops bugging sphinx!
+# class FullTokenResponseSchemaBaseModel(TokenSchema, TokenResponseSchema):
+#     ...
+class FullTokenResponseSchema(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    token_id: PrimaryKey
+    user_id: PrimaryKey
+    created_at: dt.datetime
+    revoked_at: dt.datetime | None
+    expires_on: dt.datetime | None
+    is_expired: bool
+    is_login_token: bool
+    scopes: list[str]
+    project_id: PrimaryKey | None
+    comment: str
 
 
 ####################################################################################################

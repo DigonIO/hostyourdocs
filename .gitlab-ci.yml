@@ -1,50 +1,154 @@
 stages:
   - build
+  - push
+  - test
+  - push_cov
+  - release
 
 variables:
-  KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
+  IMG_BASE: registry.gitlab.com/digonio/images/hostyourdocs-base:0dd4999e
+  IMG_KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
   CONTEXT_PATH: build_image/
+  MARIADB_ADDRESS: mariadb
+  MARIADB_DATABASE: hyd_db
+  MARIADB_USER: hyd_user
+  MARIADB_PASSWORD: ${DUMMY}
+  MARIADB_ROOT_PASSWORD: ${DUMMY}
+  SECRET_KEY: ${DUMMY}
 
 ####################################################################################################
-### Testing
+### Build Stage
 ####################################################################################################
 
-build_dev:
+build_img:
   stage: build
   image:
-    name: ${KANIKO}
+    name: ${IMG_KANIKO}
     entrypoint: [""]
   script:
+    # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
     - sh script/build_base.sh
     - >
       /kaniko/executor
       --context ${CONTEXT_PATH}
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-      --verbosity info
-      --force
+      --tarPath image.tar
       --no-push
-  rules:
-    - if: $CI_COMMIT_TAG == null
+      --force
+  artifacts:
+    paths:
+    - image.tar
 
-####################################################################################################
-### Release
-####################################################################################################
-
-build_tag:
+build_doc:
   stage: build
   image:
-    name: ${KANIKO}
+    name: ${IMG_BASE}
+  script:
+    - pip install -r requirements-dev.txt
+    - pip install -e .
+    - python -m sphinx -b html doc/ doc/_build/html
+    - tar -C ./doc/_build/html -cpz . -f ./doc_build.tar.gz
+  artifacts:
+    paths:
+    - doc_build.tar.gz
+  only:
+  - master
+  - dev
+
+####################################################################################################
+### Push Stage
+####################################################################################################
+
+push_img:
+  stage: push
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
     entrypoint: [""]
   script:
-    # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$CI_DEPENDENCY_PROXY_SERVER\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - sh script/build_base.sh
-    - >
-      /kaniko/executor
-      --context ${CONTEXT_PATH}
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
-      --verbosity info
-      --force
-  only:
-    - tags
+  - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - crane push image.tar ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
 
+push_doc:
+  stage: push
+  image:
+    name: ${IMG_BASE}
+  script:
+    - >
+      curl -X 'POST'
+      'https://digon.io/hyd/api/v1/version/upload'
+      -H 'accept: application/json'
+      -H "Authorization: Bearer ${HYD_TOKEN}"
+      -H 'Content-Type: multipart/form-data'
+      -F 'file=@doc_build.tar.gz;type=application/gzip'
+      -F 'project_id=1'
+      -F "version=${CI_COMMIT_SHORT_SHA}"
+    - >
+      curl -X 'PATCH'
+      "https://digon.io/hyd/api/v1/tag/move?project_id=1&tag=${CI_COMMIT_BRANCH}&version=${CI_COMMIT_SHORT_SHA}"
+      -H 'accept: application/json'
+      -H "Authorization: Bearer ${HYD_TOKEN}"
+  only:
+  - master
+  - dev
+
+####################################################################################################
+### Test Stage
+####################################################################################################
+
+test_img:
+  stage: test
+  image: registry.gitlab.com/digonio/hostyourdocs:${CI_COMMIT_SHORT_SHA}
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  script:
+    - pip install -r requirements-dev.txt
+    - python -m pytest --cov=/usr/lib/python3.10/site-packages/hyd/backend test
+    - python -m coverage html
+    - tar -C ./htmlcov -cpz . -f ./cov_report.tar.gz
+  services:
+    - name: mariadb:10.10.1-rc-jammy
+  artifacts:
+    paths:
+    - cov_report.tar.gz
+
+test_doc:
+  stage: test
+  image: "python:3.9.11-alpine3.15"
+  script:
+    - echo "Hello World"
+  allow_failure: true
+
+####################################################################################################
+### Push Coverage Report Stage
+####################################################################################################
+
+push_cov:
+  stage: push_cov
+  image:
+    name: ${IMG_BASE}
+  script:
+    - >
+      curl -X 'POST'
+      'https://digon.io/hyd/api/v1/version/upload'
+      -H 'accept: application/json'
+      -H "Authorization: Bearer ${HYD_TOKEN}"
+      -H 'Content-Type: multipart/form-data'
+      -F 'file=@cov_report.tar.gz;type=application/gzip'
+      -F 'project_id=1'
+      -F "version=${CI_COMMIT_SHORT_SHA}_coverage_report"
+  only:
+  - dev
+
+####################################################################################################
+### Release Stage
+####################################################################################################
+
+release_img:
+  stage: release
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  script:
+  - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - crane push image.tar ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+  only:
+  - tags

@@ -38,6 +38,21 @@ git clone git@gitlab.com:DigonIO/hostyourdocs.git
 cd hostyourdocs
 ```
 
+Create and activate a virtual environment:
+
+```bash
+python -m venv venv
+source ./venv/bin/activate
+```
+
+Install the project with the development requirements and install
+[pre-commit](https://pre-commit.com/) for the repository:
+
+```bash
+pip install -e .[dev]
+python -m pre_commit install
+```
+
 To test changes made locally on your cloned repository, you can use the `build_docker.sh`
 helper script to build updated docker images for your docker compose project:
 
@@ -48,3 +63,14 @@ helper script to build updated docker images for your docker compose project:
 If you use the script for local development, use `hostyourdocs` instead of the
 `registry.gitlab.com/digonio/hostyourdocs` url and `local` for the `<TAG>`
 in the `docker-compose.yaml` file.
+
+## Building the documentation
+
+We are using Sphinx with [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html)
+formatting.
+
+To build the documentation locally, run:
+
+```bash
+python -m sphinx -b html doc/ doc/_build/html
+```

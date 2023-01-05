@@ -2,6 +2,7 @@ stages:
   - build
   - push
   - test
+  - push_cov
   - release
 
 variables:
@@ -16,7 +17,7 @@ variables:
   SECRET_KEY: ${DUMMY}
 
 ####################################################################################################
-### Build stage
+### Build Stage
 ####################################################################################################
 
 build_img:
@@ -55,7 +56,7 @@ build_doc:
   - dev
 
 ####################################################################################################
-### Push stage
+### Push Stage
 ####################################################################################################
 
 push_img:
@@ -91,7 +92,7 @@ push_doc:
   - dev
 
 ####################################################################################################
-### Test stage
+### Test Stage
 ####################################################################################################
 
 test_img:
@@ -101,8 +102,13 @@ test_img:
   script:
     - pip install -r requirements-dev.txt
     - python -m pytest --cov=/usr/lib/python3.10/site-packages/hyd/backend test
+    - python -m coverage html
+    - tar -C ./htmlcov -cpz . -f ./cov_report.tar.gz
   services:
     - name: mariadb:10.10.1-rc-jammy
+  artifacts:
+    paths:
+    - cov_report.tar.gz
 
 test_doc:
   stage: test
@@ -111,9 +117,29 @@ test_doc:
     - echo "Hello World"
   allow_failure: true
 
+####################################################################################################
+### Push Coverage Report Stage
+####################################################################################################
+
+push_cov:
+  stage: push_cov
+  image:
+    name: ${IMG_BASE}
+  script:
+    - >
+      curl -X 'POST'
+      'https://digon.io/hyd/api/v1/version/upload'
+      -H 'accept: application/json'
+      -H "Authorization: Bearer ${HYD_TOKEN}"
+      -H 'Content-Type: multipart/form-data'
+      -F 'file=@cov_report.tar.gz;type=application/gzip'
+      -F 'project_id=1'
+      -F "version=${CI_COMMIT_SHORT_SHA}_coverage_report"
+  only:
+  - dev
 
 ####################################################################################################
-### Release stage
+### Release Stage
 ####################################################################################################
 
 release_img:

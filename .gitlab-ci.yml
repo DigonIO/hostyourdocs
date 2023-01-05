@@ -100,7 +100,7 @@ test_img:
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   script:
     - pip install -r requirements-dev.txt
-    - python -m pytest --cov=/app/src/ test
+    - python -m pytest --cov=/usr/lib/python3.10/site-packages/hyd/backend test
   services:
     - name: mariadb:10.10.1-rc-jammy
 

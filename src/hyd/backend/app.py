@@ -2,12 +2,17 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 import hyd.backend.util.patch_fastapi  # dirty openapi.json hack
+from hyd import __version__
 from hyd.backend.api import api_router
 from hyd.backend.db import SessionMaker
 from hyd.backend.frontend import footer_router, frontend_router
 from hyd.backend.util.const import ROOT_PATH
 
-app = FastAPI(root_path=ROOT_PATH)
+app = FastAPI(
+    root_path=ROOT_PATH,
+    title="HostYourDocs REST API",
+    version=__version__,
+)
 # https://fastapi.tiangolo.com/tutorial/cors/
 
 ####################################################################################################

@@ -16,7 +16,7 @@ def test_authentication(client: TestClient):
 
     response = client.get("/api/v1/user/greet", headers=headers)
     assert response.status_code == 200
-    assert response.text == "Hello admin :)"
+    assert response.json() == "Hello admin :)"
 
 
 ####################################################################################################

@@ -18,10 +18,16 @@ except FileNotFoundError:
 
 # Only useful for local development
 # DeclarativeMeta.metadata.drop_all(bind=engine)
-DeclarativeMeta.metadata.create_all(bind=engine)
+
+
+def init_db():
+    DeclarativeMeta.metadata.create_all(bind=engine)
+    with SessionMaker() as db:
+        setup_admin_user(db=db)
+
+
+init_db()
 
 MountHelper.set_router(router=app.router)
-
 with SessionMaker() as db:
-    setup_admin_user(db=db)
     MountHelper.mount_existing_projects(db=db)

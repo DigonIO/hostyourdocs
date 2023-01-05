@@ -37,7 +37,8 @@ build_doc:
   image:
     name: ${IMG_BASE}
   script:
-    - pip install -e .[dev]
+    - pip install -r requirements-dev.txt
+    - pip install -e .
     - python -m sphinx -b html doc/ doc/_build/html
     - tar -C ./doc/_build/html -cpz . -f ./doc_build.tar.gz
   artifacts:
@@ -89,10 +90,9 @@ push_doc:
 
 test_img:
   stage: test
-  image: "python:3.9.11-alpine3.15"
+  image: registry.gitlab.com/digonio/hostyourdocs:${CI_COMMIT_SHORT_SHA}
   script:
-    - echo "Hello World"
-  allow_failure: true
+    - pip install -r requirements-dev.txt
 
 test_doc:
   stage: test

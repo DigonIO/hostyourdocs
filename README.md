@@ -5,6 +5,8 @@ Host your docs on your own infrastructure, easy and secure!
 [![repository](https://img.shields.io/badge/src-GitLab-orange)](https://gitlab.com/DigonIO/hostyourdocs)
 [![mirror](https://img.shields.io/badge/mirror-GitHub-orange)](https://github.com/DigonIO/hostyourdocs)
 [![license](https://img.shields.io/badge/license-GPLv3-orange)](https://gitlab.com/DigonIO/hostyourdocs/-/blob/master/LICENSE)
+[![pipeline status](https://gitlab.com/DigonIO/hostyourdocs/badges/master/pipeline.svg)](https://gitlab.com/DigonIO/hostyourdocs/-/commits/master)
+[![coverage report](https://gitlab.com/DigonIO/hostyourdocs/badges/master/coverage.svg)](https://gitlab.com/DigonIO/hostyourdocs/-/commits/master)
 [![Code style: black](https://gitlab.com/DigonIO/scheduler/-/raw/master/doc/_assets/code_style_black.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 

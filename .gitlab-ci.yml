@@ -1,5 +1,6 @@
 stages:
   - build
+  - push
   - test
   - release
 
@@ -19,14 +20,17 @@ build_img:
     entrypoint: [""]
   script:
     # https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"},\"$CI_DEPENDENCY_PROXY_SERVER\":{\"auth\":\"$(printf "%s:%s" ${CI_DEPENDENCY_PROXY_USER} "${CI_DEPENDENCY_PROXY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - sh script/build_base.sh
     - >
       /kaniko/executor
       --context ${CONTEXT_PATH}
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-      --verbosity info
+      --tarPath image.tar
+      --no-push
       --force
+  artifacts:
+    paths:
+    - image.tar
 
 build_doc:
   stage: build
@@ -36,6 +40,31 @@ build_doc:
     - pip install -e .[dev]
     - python -m sphinx -b html doc/ doc/_build/html
     - tar -C ./doc/_build/html -cpz . -f ./doc_build.tar.gz
+  artifacts:
+    paths:
+    - doc_build.tar.gz
+  only:
+  - master
+  - dev
+
+####################################################################################################
+### Push stage
+####################################################################################################
+
+push_img:
+  stage: push
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  script:
+  - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - crane push image.tar ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+
+push_doc:
+  stage: push
+  image:
+    name: ${IMG_BASE}
+  script:
     - >
       curl -X 'POST'
       'https://digon.io/hyd/api/v1/version/upload'
@@ -79,10 +108,11 @@ test_doc:
 
 release_img:
   stage: release
-  image: "python:3.9.11-alpine3.15"
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
   script:
-    - echo "Hello World"
-  allow_failure: true
+  - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - crane push image.tar ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
   only:
   - tags
-

@@ -8,6 +8,12 @@ variables:
   IMG_BASE: registry.gitlab.com/digonio/images/hostyourdocs-base:0dd4999e
   IMG_KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
   CONTEXT_PATH: build_image/
+  MARIADB_ADDRESS: mariadb
+  MARIADB_DATABASE: hyd_db
+  MARIADB_USER: hyd_user
+  MARIADB_PASSWORD: ${DUMMY}
+  MARIADB_ROOT_PASSWORD: ${DUMMY}
+  SECRET_KEY: ${DUMMY}
 
 ####################################################################################################
 ### Build stage
@@ -91,8 +97,12 @@ push_doc:
 test_img:
   stage: test
   image: registry.gitlab.com/digonio/hostyourdocs:${CI_COMMIT_SHORT_SHA}
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   script:
     - pip install -r requirements-dev.txt
+    - python -m pytest --cov=/app/src/ test
+  services:
+    - name: mariadb:10.10.1-rc-jammy
 
 test_doc:
   stage: test

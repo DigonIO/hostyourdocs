@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/digonio/images/hostyourdocs-base:c05cb9bb
+FROM registry.gitlab.com/digonio/images/hostyourdocs-base:0dd4999e
 
 COPY setup.py /app
 COPY src /app

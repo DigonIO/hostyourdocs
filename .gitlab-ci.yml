@@ -5,7 +5,7 @@ stages:
   - release
 
 variables:
-  IMG_BASE: registry.gitlab.com/digonio/images/hostyourdocs-base:c05cb9bb
+  IMG_BASE: registry.gitlab.com/digonio/images/hostyourdocs-base:0dd4999e
   IMG_KANIKO: gcr.io/kaniko-project/executor:v1.9.0-debug
   CONTEXT_PATH: build_image/
 

@@ -1,23 +1,7 @@
-from flet import (
-    AppBar,
-    CircleAvatar,
-    Container,
-    ElevatedButton,
-    Icon,
-    Page,
-    Text,
-    TextButton,
-    TextField,
-    View,
-    app,
-    colors,
-    icons,
-    padding,
-    theme,
-)
+from flet import AppBar, Page, colors, theme
 from hyd_client import ApiClient, Configuration
 
-from hyd.frontend.views import init_view
+from hyd.frontend.view import init_view
 
 PROTOCOL = "http"
 BACKEND_ADDRESS = "127.0.0.1"
@@ -51,6 +35,4 @@ def _setup_page(page: Page) -> None:
     page.window_resizable = True
     page.title = "HostYourDocs"
     page.theme = theme.Theme(color_scheme_seed="blue")
-    page.window_height = page.window_height - 100
-    page.window_width = page.window_width - 200
     page.appbar = AppBar(bgcolor=colors.SURFACE_VARIANT)
